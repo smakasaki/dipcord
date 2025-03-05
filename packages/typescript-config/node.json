@@ -1,8 +1,9 @@
 {
     "extends": "./base.json",
     "compilerOptions": {
-        "outDir": "dist",
-        "module": "NodeNext",
-        "moduleResolution": "NodeNext"
+      "target": "ESNext",
+      "module": "NodeNext",
+      "moduleResolution": "NodeNext",
+      "outDir": "dist"
     }
 }
