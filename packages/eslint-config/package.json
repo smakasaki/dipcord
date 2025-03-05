@@ -1,0 +1,14 @@
+{
+    "name": "@dipcord/eslint-config",
+    "version": "0.0.0",
+    "private": true,
+    "exports": {
+        ".": "./eslint.config.js",
+        "./create-config": "./create-config.js"
+    },
+    "devDependencies": {
+        "@antfu/eslint-config": "^4.4.0",
+        "eslint": "^9.21.0",
+        "eslint-plugin-format": "^1.0.1"
+    }
+}
