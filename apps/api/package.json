@@ -1,0 +1,23 @@
+{
+    "name": "@dipcord/api",
+    "type": "module",
+    "version": "1.0.0",
+    "private": "true",
+    "scripts": {
+        "dev": "tsx --watch src/index.ts",
+        "build": "tsc",
+        "start": "node dist/index.js",
+        "lint": "eslint .",
+        "check-types": "tsc --noEmit"
+    },
+    "devDependencies": {
+        "@dipcord/eslint-config": "workspace:*",
+        "@dipcord/typescript-config": "workspace:*",
+        "@types/node": "^22.0.0",
+        "eslint": "^9.21.0",
+        "eslint-plugin-drizzle": "^0.2.3",
+        "eslint-plugin-format": "^1.0.1",
+        "tsx": "^4.19.3",
+        "typescript": "^5.8.2"
+    }
+}
