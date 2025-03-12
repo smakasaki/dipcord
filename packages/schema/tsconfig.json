@@ -1,0 +1,10 @@
+{
+    "extends": "@dipcord/typescript-config/base.json",
+    "compilerOptions": {
+      "outDir": "dist",
+      "module": "NodeNext",
+      "moduleResolution": "NodeNext"
+    },
+    "include": ["**/*.ts"],
+    "exclude": ["node_modules", "dist"]
+  }

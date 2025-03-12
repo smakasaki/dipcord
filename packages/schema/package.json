@@ -1,0 +1,18 @@
+{
+    "name": "@dipcord/schema",
+    "version": "0.0.0",
+    "private": true,
+    "type": "module",
+    "exports": {
+      ".": "./index.ts",
+      "./user": "./user/index.ts",
+      "./common": "./common/index.ts"
+    },
+    "dependencies": {
+      "@sinclair/typebox": "^0.34.29"
+    },
+    "devDependencies": {
+      "@dipcord/typescript-config": "workspace:*",
+      "typescript": "^5.8.2"
+    }
+  }
