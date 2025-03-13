@@ -3,9 +3,9 @@ import type { PaginatedResult, Pagination, SortBy } from "#commons/app/index.js"
 import { UnauthorizedException } from "#commons/app/index.js";
 import { handleNotFound } from "#commons/infra/http/errors/index.js";
 
-import type { AuthTokenService } from "./auth-token-service.js";
-import type { AuthToken, CreateUser, Login, User } from "./models.js";
+import type { CreateUser, Login, Session, User } from "./models.js";
 import type { PasswordService } from "./password-service.js";
+import type { SessionService } from "./session-service.js";
 import type { IUserRepository } from "./user-repo.js";
 
 /**
@@ -18,12 +18,12 @@ export class UserService {
     /**
      * Create a new UserService
      * @param passwordService Service for password operations
-     * @param authTokenService Service for JWT operations
+     * @param sessionService Service for session operations
      * @param userRepository Repository for user data access
      */
     constructor(
         private readonly passwordService: PasswordService,
-        private readonly authTokenService: AuthTokenService,
+        private readonly sessionService: SessionService,
         private readonly userRepository: IUserRepository,
     ) {}
 
@@ -43,13 +43,15 @@ export class UserService {
     }
 
     /**
-     * Authenticate user and return token
+     * Authenticate user and create a session
      * @param credentials Login credentials
-     * @returns Authentication token
+     * @param ipAddress IP address of the client
+     * @param userAgent User agent of the client
+     * @returns Authenticated user
      * @throws UnauthorizedException if credentials are invalid
      */
-    async login(credentials: Login): Promise<AuthToken> {
-    // Find user by email
+    async login(credentials: Login, ipAddress?: string, userAgent?: string): Promise<{ user: User; session: Session }> {
+        // Find user by email
         const user = await this.userRepository.findByEmail(credentials.email);
         if (!user) {
             throw new UnauthorizedException("Invalid credentials");
@@ -69,10 +71,20 @@ export class UserService {
             throw new UnauthorizedException("Invalid credentials");
         }
 
-        // Generate JWT token
-        const accessToken = await this.authTokenService.generateToken(user);
+        // Create a new session for the user
+        const session = await this.sessionService.createSession(user, ipAddress, userAgent);
 
-        return { accessToken };
+        return { user, session };
+    }
+
+    /**
+     * Logout user by deleting the session
+     * @param sessionId Session ID to logout
+     * @returns True if logout was successful
+     */
+    async logout(sessionId: string): Promise<boolean> {
+        const session = await this.sessionService.deleteSession(sessionId);
+        return !!session;
     }
 
     /**
@@ -110,11 +122,15 @@ export class UserService {
     }
 
     /**
-     * Delete a user
+     * Delete a user and all associated sessions
      * @param id User id
      * @returns Deleted user or undefined if not found
      */
-    delete(id: User["id"]): Promise<User | undefined> {
+    async delete(id: User["id"]): Promise<User | undefined> {
+        // Delete all user sessions first
+        await this.sessionService.deleteUserSessions(id);
+
+        // Delete the user
         return this.userRepository.delete(id);
     }
 }

@@ -1,5 +1,6 @@
 import type { FastifyInstance } from "fastify";
 
+import cookie from "@fastify/cookie";
 import cors from "@fastify/cors";
 import sensible from "@fastify/sensible";
 import swagger from "@fastify/swagger";
@@ -7,13 +8,19 @@ import swaggerUi from "@fastify/swagger-ui";
 import { Type } from "@sinclair/typebox";
 
 import { errorHandler } from "#commons/infra/http/errors/index.js";
+import { buildSessionConfig } from "#users/config/session-config.js";
 
 /**
  * Build server with all components
  */
 export default async function buildServer(app: FastifyInstance) {
+    const { cookieName } = buildSessionConfig();
     // Register essential plugins
     app.register(sensible);
+    app.register(cookie, {
+        // eslint-disable-next-line node/no-process-env
+        secret: process.env.COOKIE_SECRET || "supersecretcookiekeythatneedstobechanged",
+    });
     app.register(cors, {
         // eslint-disable-next-line node/no-process-env
         origin: process.env.CORS_ORIGIN || true,
@@ -30,10 +37,10 @@ export default async function buildServer(app: FastifyInstance) {
             },
             components: {
                 securitySchemes: {
-                    bearerAuth: {
-                        type: "http",
-                        scheme: "bearer",
-                        bearerFormat: "JWT",
+                    cookieAuth: {
+                        type: "apiKey",
+                        in: "cookie",
+                        name: cookieName,
                     },
                 },
             },

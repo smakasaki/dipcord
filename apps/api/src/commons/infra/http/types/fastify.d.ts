@@ -13,12 +13,16 @@ import type {
     RouteGenericInterface,
 } from "fastify";
 
+import type { Database } from "#commons/infra/plugins/database.js";
+import type { UserService } from "#users/app/user-service.ts";
+
 declare module "fastify" {
     interface FastifyInstance {
         db: Database;
         authTokenService: AuthTokenService;
         authenticate: (request: FastifyRequest) => Promise<void>;
         userService: UserService;
+        sessionService: SessionService;
     }
     interface FastifyRequest {
         user?: {
@@ -26,6 +30,7 @@ declare module "fastify" {
             email: string;
             name: string;
             surname: string;
+            sessionId: string;
             [key: string]: unknown;
         };
     }
