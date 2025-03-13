@@ -2,7 +2,8 @@ import { count, eq } from "drizzle-orm";
 
 import type { PaginatedResult, Pagination, SortBy } from "#commons/app/index.js";
 import type { Database } from "#commons/infra/plugins/database.js";
-import type { CreateUser, IUserRepository, PasswordHashWithSalt, User } from "#users/app/index.js";
+import type { CreateUser, PasswordHashWithSalt, User } from "#users/app/models.js";
+import type { IUserRepository } from "#users/app/user-repo.js";
 
 import { buildSortBy } from "#commons/infra/dao/utils.js";
 import { users } from "#db/schema/index.js";
@@ -46,7 +47,10 @@ export class UserDao implements IUserRepository {
                 updatedAt: users.updatedAt,
             });
 
-        return result[0] as User;
+        if (!result[0])
+            throw new Error("User not created");
+
+        return result[0];
     }
 
     /**
@@ -144,7 +148,10 @@ export class UserDao implements IUserRepository {
             .where(eq(users.id, user.id))
             .limit(1);
 
-        return result[0] as PasswordHashWithSalt;
+        if (!result[0])
+            throw new Error(`Password hash not found for user with id ${user.id}`);
+
+        return result[0];
     }
 
     /**

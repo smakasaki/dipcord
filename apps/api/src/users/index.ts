@@ -25,8 +25,8 @@ export default async function (app: FastifyInstance) {
 
     // Register user routes
     app.register(autoLoad, {
-        dir: join(__dirname, "infra/http/routes"),
-        options: { prefix: "/api" },
+        dir: join(__dirname, "infra/routes"),
+        options: { prefix: "/v1/" },
         forceESM: true,
     });
 }

@@ -21,6 +21,7 @@
     },
     "dependencies": {
         "@fastify/autoload": "^6.2.0",
+        "@fastify/cookie": "^11.0.2",
         "@fastify/cors": "^11.0.0",
         "@fastify/sensible": "^6.0.3",
         "@fastify/swagger": "^9.4.2",
@@ -31,7 +32,6 @@
         "drizzle-orm": "^0.40.0",
         "fastify": "^5.2.1",
         "fastify-plugin": "^5.0.1",
-        "jose": "^6.0.8",
         "pg": "^8.13.3",
         "uuid": "^11.1.0"
     },

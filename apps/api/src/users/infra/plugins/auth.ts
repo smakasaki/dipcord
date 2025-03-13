@@ -2,51 +2,65 @@ import type { FastifyInstance, FastifyRequest } from "fastify";
 
 import fp from "fastify-plugin";
 
+import type { SessionService } from "#users/app/session-service.js";
+import type { UserService } from "#users/app/user-service.js";
+
 import { UnauthorizedException } from "#commons/app/index.js";
-import { AuthTokenService } from "#users/app/index.js";
-import { buildJwtConfig } from "#users/config/jwt-config.js";
+import { buildSessionConfig } from "#users/config/session-config.js";
 
 /**
  * Authentication plugin for Fastify
- * Adds authentication middleware and helpers
+ * Adds authentication middleware and helpers for session-based auth
  */
 export default fp(async (fastify: FastifyInstance) => {
-    // Create auth token service
-    const jwtConfig = buildJwtConfig();
-    const authTokenService = new AuthTokenService(jwtConfig);
+    const sessionService = fastify.sessionService as SessionService;
+    const userService = fastify.userService as UserService;
 
-    // Add auth token service to fastify instance
-    fastify.decorate("authTokenService", authTokenService);
+    if (!sessionService) {
+        throw new Error("Session service not found. Make sure it is registered before the auth plugin.");
+    }
 
-    // Add authentication decorator
+    if (!userService) {
+        throw new Error("User service not found. Make sure it is registered before the auth plugin.");
+    }
+
     fastify.decorate("authenticate", async (request: FastifyRequest) => {
         try {
-            // Extract authorization header
-            const authHeader = request.headers.authorization;
-            if (!authHeader) {
-                throw new UnauthorizedException("Missing authorization header");
+            // Get the session cookie
+            const { cookieName } = buildSessionConfig();
+            const sessionToken = request.cookies[cookieName];
+
+            if (!sessionToken) {
+                throw new UnauthorizedException("No session found");
             }
 
-            // Check if authorization header starts with Bearer
-            if (!authHeader.startsWith("Bearer ")) {
-                throw new UnauthorizedException("Invalid authorization format");
+            // Verify session token
+            const session = await sessionService.getSessionByToken(sessionToken);
+            if (!session) {
+                throw new UnauthorizedException("Invalid or expired session");
             }
 
-            // Extract token
-            const token = authHeader.substring(7);
-            if (!token) {
-                throw new UnauthorizedException("Missing token");
+            // Get user information
+            const user = await userService.findById(session.userId);
+            if (!user) {
+                throw new UnauthorizedException("User not found");
             }
 
-            // Verify token
-            const user = await authTokenService.verifyToken(token);
+            // Update last used timestamp
+            await sessionService.updateLastUsed(session.id);
 
-            // Add user to request
-            request.user = user;
+            // Add user and session to request
+            request.user = {
+                id: user.id,
+                email: user.email,
+                name: user.name,
+                surname: user.surname,
+                sessionId: session.id,
+            };
         }
         // eslint-disable-next-line unused-imports/no-unused-vars
         catch (error) {
-            throw new UnauthorizedException("Invalid or expired token");
+            throw new UnauthorizedException("Authentication failed");
         }
     });
 

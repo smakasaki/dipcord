@@ -1,22 +1,36 @@
 import type { FastifyPluginAsyncTypebox } from "@fastify/type-provider-typebox";
 
-import { NoContent, PaginatedUsersSchema, Pagination, UserErrorResponses, UserIdParamSchema, UserSchema,
-} from "@dipcord/schema";
+import
+{ NoContent, PaginatedUsersSchema, Pagination, UserErrorResponses, UserIdParamSchema, UserSchema }
+    from "@dipcord/schema";
 import { Type } from "@sinclair/typebox";
 
-import { decodeSort } from "#commons/infra/http/utils/decode-sort.js";
+import type { User } from "#users/app/models.js";
+
+import { decodeSort, validateSortFields } from "#commons/infra/http/utils/decode-sort.js";
+import { mapPaginatedUsersToResponse, mapUserToResponse } from "#users/infra/utils/user-mapper.js";
 
 /**
  * User management routes
  */
 const routes: FastifyPluginAsyncTypebox = async function (fastify): Promise<void> {
+    // Define valid sort fields for User entity
+    const validUserSortFields: Array<keyof User & string> = [
+        "id",
+        "name",
+        "surname",
+        "email",
+        "createdAt",
+        "updatedAt",
+    ];
+
     /**
      * Get all users with pagination
      */
     fastify.get("/", {
-        // config: {
-        //     auth: true,
-        // },
+        config: {
+            auth: true,
+        },
         schema: {
             tags: ["Users"],
             description: "Get all users with pagination",
@@ -36,14 +50,25 @@ const routes: FastifyPluginAsyncTypebox = async function (fastify): Promise<void
                 200: PaginatedUsersSchema,
                 ...UserErrorResponses,
             },
-            security: [{ bearerAuth: [] }],
+            security: [{ cookieAuth: [] }],
         },
     }, async (request) => {
         const { offset, limit, sort } = request.query;
-        return fastify.userService.findAll(
-            { offset: offset ?? 0, limit: limit ?? 10 },
-            decodeSort(sort ?? ["id.asc"]),
+
+        // Validate and filter sort fields to ensure they're valid keys of User
+        const validatedSort = validateSortFields<User>(
+            sort ?? ["id.asc"],
+            validUserSortFields,
         );
+
+        // Get the data from the service with type-safe sort
+        const result = await fastify.userService.findAll(
+            { offset: offset ?? 0, limit: limit ?? 10 },
+            decodeSort<User>(validatedSort),
+        );
+
+        // Transform domain model to API response format
+        return mapPaginatedUsersToResponse(result);
     });
 
     /**
@@ -61,10 +86,11 @@ const routes: FastifyPluginAsyncTypebox = async function (fastify): Promise<void
                 200: UserSchema,
                 ...UserErrorResponses,
             },
-            security: [{ bearerAuth: [] }],
+            security: [{ cookieAuth: [] }],
         },
     }, async (request) => {
-        return fastify.userService.findById(request.params.userId);
+        const user = await fastify.userService.findById(request.params.userId);
+        return mapUserToResponse(user);
     });
 
     /**
@@ -82,7 +108,7 @@ const routes: FastifyPluginAsyncTypebox = async function (fastify): Promise<void
                 204: NoContent,
                 ...UserErrorResponses,
             },
-            security: [{ bearerAuth: [] }],
+            security: [{ cookieAuth: [] }],
         },
     }, async (request, reply) => {
         await fastify.userService.delete(request.params.userId);
