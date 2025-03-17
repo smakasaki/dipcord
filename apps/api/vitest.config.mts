@@ -1,41 +1,9 @@
-import { resolve } from "node:path";
-import { defineConfig } from "vitest/config";
+import { createConfig } from "./vitest.config.base.mjs";
 
-export default defineConfig({
-    resolve: {
-        alias: [
-            {
-                find: /^#(.*)/,
-                replacement: resolve(__dirname, "./src/$1"),
-            },
-        ],
-        conditions: ["dev"],
-    },
+export default createConfig({
     test: {
-        globals: true,
-        environment: "node",
         testTimeout: 30000,
-        passWithNoTests: true,
-        setupFiles: ["./test/setup.ts"],
-        pool: "forks",
-        poolOptions: {
-            threads: {
-                singleThread: true,
-            },
-            forks: {
-                isolate: false,
-                singleFork: true,
-            },
-        },
-        coverage: {
-            provider: "v8",
-            reporter: ["text", "json", "html"],
-            exclude: [
-                "node_modules/**",
-                "dist/**",
-                "**/index.ts",
-                "**/*.d.ts",
-            ],
-        },
+        setupFiles: ["./test/setup.ts", "./test/setup.unit.ts", "./test/setup.integration.ts"],
+        include: ["test/**/*.test.ts"],
     },
 });

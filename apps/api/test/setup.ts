@@ -1,22 +1,22 @@
 /* eslint-disable node/no-process-env */
+import console from "node:console";
 /**
- * Global setup for tests
- *
- * This file is referenced in the vitest.config.mts file as a setup file
+ * Global setup for all tests
+ * This file is referenced in vitest.config.mts as a setup file
  * and will run before all tests.
  */
-import { afterAll, beforeAll } from "vitest";
+import { beforeAll } from "vitest";
 
 /**
  * Set up environment variables for testing
+ * Used by both unit and integration tests
  */
 beforeAll(() => {
+    console.log("🔧 Setting up global test environment");
+
     // Setup test environment variables
     process.env.NODE_ENV = "test";
     process.env.LOG_LEVEL = "error";
-
-    // We don't need to set database config
-    // since we're using TestContainers which will provide these values dynamically
 
     // Session config
     process.env.SESSION_COOKIE_NAME = "test_sid";
@@ -24,12 +24,5 @@ beforeAll(() => {
     process.env.SESSION_COOKIE_SECURE = "false";
     process.env.COOKIE_SECRET = "test_secret_key_for_testing_only";
 
-    console.log("Test environment setup complete");
-});
-
-/**
- * Clean up after all tests
- */
-afterAll(() => {
-    console.log("Test environment cleanup complete");
+    console.log("✅ Global test environment setup complete");
 });
