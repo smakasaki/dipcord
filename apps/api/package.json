@@ -17,9 +17,15 @@
         "lint": "eslint .",
         "check-types": "tsc --noEmit",
         "test": "vitest run",
+        "test:unit": "vitest run --config vitest.unit.config.mts",
+        "test:integration": "vitest run --config vitest.integration.config.mts",
+        "test:watch": "vitest",
+        "test:watch:unit": "vitest --config vitest.unit.config.mts",
+        "test:watch:integration": "vitest --config vitest.integration.config.mts",
         "test:ui": "vitest --ui",
-        "test:unit": "vitest run test/unit",
-        "test:integration": "vitest run test/integration"
+        "test:ui:unit": "vitest --ui --config vitest.unit.config.mts",
+        "test:ui:integration": "vitest --ui --config vitest.integration.config.mts",
+        "test:coverage": "vitest run --coverage"
     },
     "dependencies": {
         "@fastify/autoload": "^6.2.0",
@@ -44,6 +50,7 @@
         "@testcontainers/postgresql": "^10.20.0",
         "@types/node": "^22.0.0",
         "@types/pg": "^8.11.11",
+        "@vitest/coverage-v8": "3.0.8",
         "@vitest/ui": "3.0.8",
         "drizzle-kit": "^0.30.5",
         "eslint": "^9.21.0",

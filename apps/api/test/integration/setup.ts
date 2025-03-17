@@ -1,6 +1,6 @@
 /**
- * Setup for integration tests using TestContainers
- * Creates a test server with a containerized database connection
+ * Setup for complete API integration tests
+ * Creates a full test server with all components registered
  */
 import type { TypeBoxTypeProvider } from "@fastify/type-provider-typebox";
 import type { FastifyInstance } from "fastify";
@@ -9,33 +9,37 @@ import cookie from "@fastify/cookie";
 import cors from "@fastify/cors";
 import sensible from "@fastify/sensible";
 import fastify from "fastify";
-import { afterAll, beforeAll } from "vitest";
+import { afterAll, afterEach, beforeAll } from "vitest";
 
 import { errorHandler } from "#commons/infra/http/errors/index.js";
-import databasePlugin from "#commons/infra/plugins/database.js";
 import authPlugin from "#users/infra/plugins/auth.js";
 import authRoutes from "#users/infra/routes/v1/auth.js";
 import usersRoutes from "#users/infra/routes/v1/users.js";
 import userServicesPlugin from "#users/infra/services/user.js";
 
-import { setupTestDatabase, setupTestTransaction, testDb } from "../helpers/db.js";
-
-// Global server instance
-let server: FastifyInstance;
+import { setupTestTransaction, testDb } from "../helpers/db.js";
 
 /**
- * Create a test server with simplified setup
+ * Create a complete test server with all components
+ * Use this for full API tests when you need the entire application stack
  */
-export async function createTestServer(): Promise<FastifyInstance> {
+export async function createApiTestServer(): Promise<FastifyInstance> {
     try {
         // Create Fastify instance with minimal logging
         const app = fastify({
             logger: {
                 level: "error",
+                transport: {
+                    target: "pino-pretty",
+                    options: {
+                        translateTime: false,
+                        ignore: "pid,hostname",
+                    },
+                },
             },
         }).withTypeProvider<TypeBoxTypeProvider>();
 
-        // Set up core plugins in a more direct way
+        // Set up core plugins
         await app.register(sensible);
         await app.register(cookie, { secret: "test_secret_key" });
         await app.register(cors, { origin: true });
@@ -43,10 +47,10 @@ export async function createTestServer(): Promise<FastifyInstance> {
         // Set error handler
         app.setErrorHandler(errorHandler);
 
-        // Register database
-        await app.register(databasePlugin);
+        // Используем уже существующую БД, инициализированную в setup.integration.ts
+        app.decorate("db", testDb.get());
 
-        // Register user services and auth
+        // Register services and plugins
         await app.register(userServicesPlugin);
         await app.register(authPlugin);
 
@@ -60,62 +64,57 @@ export async function createTestServer(): Promise<FastifyInstance> {
         // Make sure server is ready
         await app.ready();
 
-        // Log success
-        console.log("Test server services:", {
-            hasUserService: !!app.userService,
-            hasSessionService: !!app.sessionService,
-            hasDb: !!app.db,
-        });
+        console.log("🚀 Test API server initialized");
 
         return app;
     }
     catch (error) {
-        console.error("Error creating test server:", error);
+        console.error("❌ Error creating test API server:", error);
         throw error;
     }
 }
 
 /**
  * Setup function for API integration tests
- * Sets up a test server with database connection and transaction
- * @returns Test server instance
+ * Sets up a full test server with database connection and transaction isolation
  */
-export function setupIntegrationTest() {
-    // Set up database with TestContainers
-    setupTestDatabase();
-
-    // Set up transaction for each test
+export function setupApiTest() {
     setupTestTransaction();
+
+    // Server instance
+    let server: FastifyInstance;
 
     // Create and start the server before tests
     beforeAll(async () => {
         try {
-            console.log("Starting test server initialization");
-            server = await createTestServer();
-            console.log("Test server initialized successfully");
+            server = await createApiTestServer();
         }
         catch (error) {
-            console.error("Failed to initialize test server:", error);
+            console.error("❌ Failed to initialize test API server:", error);
             throw error;
         }
-    }, 120000); // Doubled timeout for server initialization
+    }, 30000); // 30s timeout for server initialization
+
+    // Cleanup for each test
+    afterEach(async () => {
+        // Any per-test cleanup needed for the server
+    });
 
     // Close the server after tests
     afterAll(async () => {
         try {
             if (server) {
                 await server.close();
-                console.log("Test server closed");
+                console.log("✅ Test API server closed");
             }
         }
         catch (error) {
-            console.error("Failed to close test server:", error);
+            console.error("❌ Failed to close test API server:", error);
         }
     });
 
     // Return the server for tests to use
     return {
         getServer: () => server,
-        getDb: () => testDb.get(),
     };
 }

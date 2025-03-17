@@ -5,10 +5,10 @@ import { randomUUID } from "node:crypto";
 import { describe, expect, it } from "vitest";
 
 import { authenticatedUser } from "../../helpers/auth.js";
-import { setupIntegrationTest } from "../setup.js";
+import { setupApiTest } from "../setup.js";
 
 describe("users API", () => {
-    const { getServer } = setupIntegrationTest();
+    const { getServer } = setupApiTest();
 
     describe("gET /v1/users", () => {
         it("should return paginated users", async () => {
@@ -18,19 +18,19 @@ describe("users API", () => {
             const auth1 = await authenticatedUser(server, {
                 name: "User",
                 surname: "One",
-                email: `user.one.${randomUUID().substring(0, 8)}@example.com`, // Уникальный email
+                email: `user.one@example.com`,
             });
 
             const _auth2 = await authenticatedUser(server, {
                 name: "User",
                 surname: "Two",
-                email: `user.two.${randomUUID().substring(0, 8)}.${Date.now()}@example.com`,
+                email: `user.two@example.com`,
             });
 
             const _auth3 = await authenticatedUser(server, {
                 name: "User",
                 surname: "Three",
-                email: `user.three.${randomUUID().substring(0, 8)}.${Date.now()}@example.com`,
+                email: `user.three@example.com`,
             });
 
             // Get users with pagination

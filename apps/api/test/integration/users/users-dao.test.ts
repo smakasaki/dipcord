@@ -7,15 +7,13 @@ import { describe, expect, it } from "vitest";
 
 import { UserDao } from "#users/infra/dao/user-dao.js";
 
-import { setupTestDatabase, setupTestTransaction } from "../../helpers/db.js";
+import { setupTestTransaction, testDb } from "../../helpers/db.js";
 import { createPasswordHashFixture } from "../../helpers/fixtures.js";
 
 describe("userDao", () => {
-    // Set up the database connection
-    const { getDb } = setupTestDatabase();
-
     // Use transactions for test isolation
     setupTestTransaction();
+    const getDb = () => testDb.get();
 
     // Create a test user creation helper
     const createTestUser = async (dao: UserDao, emailSuffix = "") => {
