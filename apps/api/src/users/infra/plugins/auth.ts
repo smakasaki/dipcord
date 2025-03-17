@@ -2,9 +2,6 @@ import type { FastifyInstance, FastifyRequest } from "fastify";
 
 import fp from "fastify-plugin";
 
-import type { SessionService } from "#users/app/session-service.js";
-import type { UserService } from "#users/app/user-service.js";
-
 import { UnauthorizedException } from "#commons/app/index.js";
 import { buildSessionConfig } from "#users/config/session-config.js";
 
@@ -13,14 +10,11 @@ import { buildSessionConfig } from "#users/config/session-config.js";
  * Adds authentication middleware and helpers for session-based auth
  */
 export default fp(async (fastify: FastifyInstance) => {
-    const sessionService = fastify.sessionService as SessionService;
-    const userService = fastify.userService as UserService;
-
-    if (!sessionService) {
+    if (!fastify.sessionService) {
         throw new Error("Session service not found. Make sure it is registered before the auth plugin.");
     }
 
-    if (!userService) {
+    if (!fastify.userService) {
         throw new Error("User service not found. Make sure it is registered before the auth plugin.");
     }
 
@@ -35,19 +29,19 @@ export default fp(async (fastify: FastifyInstance) => {
             }
 
             // Verify session token
-            const session = await sessionService.getSessionByToken(sessionToken);
+            const session = await fastify.sessionService.getSessionByToken(sessionToken);
             if (!session) {
                 throw new UnauthorizedException("Invalid or expired session");
             }
 
             // Get user information
-            const user = await userService.findById(session.userId);
+            const user = await fastify.userService.findById(session.userId);
             if (!user) {
                 throw new UnauthorizedException("User not found");
             }
 
             // Update last used timestamp
-            await sessionService.updateLastUsed(session.id);
+            await fastify.sessionService.updateLastUsed(session.id);
 
             // Add user and session to request
             request.user = {

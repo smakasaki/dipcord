@@ -17,7 +17,9 @@
         "lint": "eslint .",
         "check-types": "tsc --noEmit",
         "test": "vitest run",
-        "test:ui": "vitest --ui"
+        "test:ui": "vitest --ui",
+        "test:unit": "vitest run test/unit",
+        "test:integration": "vitest run test/integration"
     },
     "dependencies": {
         "@fastify/autoload": "^6.2.0",
@@ -39,6 +41,7 @@
         "@dipcord/eslint-config": "workspace:*",
         "@dipcord/schema": "workspace:*",
         "@dipcord/typescript-config": "workspace:*",
+        "@testcontainers/postgresql": "^10.20.0",
         "@types/node": "^22.0.0",
         "@types/pg": "^8.11.11",
         "@vitest/ui": "3.0.8",
@@ -47,6 +50,7 @@
         "eslint-plugin-drizzle": "^0.2.3",
         "eslint-plugin-format": "^1.0.1",
         "pino-pretty": "^13.0.0",
+        "testcontainers": "^10.20.0",
         "tsx": "^4.19.3",
         "typescript": "^5.8.2",
         "vitest": "^3.0.8"

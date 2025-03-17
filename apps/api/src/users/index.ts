@@ -12,21 +12,21 @@ const __dirname = fileURLToPath(new URL(".", import.meta.url));
 export default async function (app: FastifyInstance) {
     // Register user services
     app.register(autoLoad, {
+        dir: join(__dirname, "infra/services"),
+        forceESM: true,
+    });
+
+    // Register user services
+    app.register(autoLoad, {
         dir: join(__dirname, "infra/plugins"),
         forceESM: true,
         encapsulate: false,
     });
 
-    // Register user services
-    app.register(autoLoad, {
-        dir: join(__dirname, "infra/services"),
-        forceESM: true,
-    });
-
     // Register user routes
     app.register(autoLoad, {
         dir: join(__dirname, "infra/routes"),
-        options: { prefix: "/v1/" },
+        options: { prefix: "" },
         forceESM: true,
     });
 }

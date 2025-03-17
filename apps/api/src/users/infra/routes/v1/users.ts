@@ -27,7 +27,7 @@ const routes: FastifyPluginAsyncTypebox = async function (fastify): Promise<void
     /**
      * Get all users with pagination
      */
-    fastify.get("/", {
+    fastify.get("/users", {
         config: {
             auth: true,
         },
@@ -74,7 +74,7 @@ const routes: FastifyPluginAsyncTypebox = async function (fastify): Promise<void
     /**
      * Get user by ID
      */
-    fastify.get("/:userId", {
+    fastify.get("/users/:userId", {
         config: {
             auth: true,
         },
@@ -96,7 +96,7 @@ const routes: FastifyPluginAsyncTypebox = async function (fastify): Promise<void
     /**
      * Delete user
      */
-    fastify.delete("/:userId", {
+    fastify.delete("/users/:userId", {
         config: {
             auth: true,
         },

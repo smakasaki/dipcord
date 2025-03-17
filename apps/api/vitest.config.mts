@@ -16,6 +16,17 @@ export default defineConfig({
         environment: "node",
         testTimeout: 30000,
         passWithNoTests: true,
+        setupFiles: ["./test/setup.ts"],
+        pool: "forks",
+        poolOptions: {
+            threads: {
+                singleThread: true,
+            },
+            forks: {
+                isolate: false,
+                singleFork: true,
+            },
+        },
         coverage: {
             provider: "v8",
             reporter: ["text", "json", "html"],
