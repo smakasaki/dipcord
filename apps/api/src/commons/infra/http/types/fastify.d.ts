@@ -14,7 +14,7 @@ import type {
 } from "fastify";
 
 import type { Database } from "#commons/infra/plugins/database.js";
-import type { UserService } from "#users/app/user-service.ts";
+import type { UserService } from "#users/app/user-service.js";
 
 declare module "fastify" {
     interface FastifyInstance {

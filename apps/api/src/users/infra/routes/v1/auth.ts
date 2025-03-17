@@ -11,7 +11,10 @@ const routes: FastifyPluginAsyncTypebox = async function (fastify): Promise<void
     /**
      * Login and create session
      */
-    fastify.post("/login", {
+    fastify.post("/auth/login", {
+        config: {
+            auth: false,
+        },
         schema: {
             tags: ["Auth"],
             description: "Login and create session",
@@ -42,7 +45,7 @@ const routes: FastifyPluginAsyncTypebox = async function (fastify): Promise<void
     /**
      * Logout and destroy session
      */
-    fastify.post("/logout", {
+    fastify.post("/auth/logout", {
         config: {
             auth: true,
         },
@@ -75,7 +78,7 @@ const routes: FastifyPluginAsyncTypebox = async function (fastify): Promise<void
     /**
      * Get current user session information
      */
-    fastify.get("/me", {
+    fastify.get("/auth/profile", {
         config: {
             auth: true,
         },

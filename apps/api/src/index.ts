@@ -4,7 +4,7 @@ import type { TypeBoxTypeProvider } from "@fastify/type-provider-typebox";
 
 import fastify from "fastify";
 
-import buildServer from "./server.js";
+import buildServer from "./commons/infra/http/server.js";
 
 /**
  * Start the server
