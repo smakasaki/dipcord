@@ -47,7 +47,7 @@ export async function initGlobalTestDatabase() {
         return globalState.db;
     }
 
-    console.log("🚀 Starting PostgreSQL container for integration tests...");
+    // console.log("🚀 Starting PostgreSQL container for integration tests...");
 
     globalState.container = await new PostgreSqlContainer()
         .withDatabase(TEST_DB_NAME)
@@ -59,7 +59,7 @@ export async function initGlobalTestDatabase() {
     const host = globalState.container.getHost();
     const port = globalState.container.getMappedPort(5432);
 
-    console.log(`📦 PostgreSQL container started at ${host}:${port}`);
+    // console.log(`📦 PostgreSQL container started at ${host}:${port}`);
 
     globalState.pool = new pg.Pool({
         host,
@@ -74,7 +74,7 @@ export async function initGlobalTestDatabase() {
 
     // Run migrations only once
     await migrate(globalState.db, { migrationsFolder: "./src/db/migrations" });
-    console.log("✓ Database migrations completed");
+    // console.log("✓ Database migrations completed");
 
     return globalState.db;
 }
@@ -84,7 +84,7 @@ export async function initGlobalTestDatabase() {
  * Called from integration/setup.root.ts after all integration tests
  */
 export async function closeGlobalTestDatabase() {
-    console.log("🔄 Shutting down global test database...");
+    // console.log("🔄 Shutting down global test database...");
 
     if (globalState.pool) {
         await globalState.pool.end();
@@ -94,7 +94,7 @@ export async function closeGlobalTestDatabase() {
     if (globalState.container) {
         await globalState.container.stop();
         globalState.container = undefined;
-        console.log("✓ PostgreSQL container stopped");
+        // console.log("✓ PostgreSQL container stopped");
     }
 }
 
@@ -162,7 +162,7 @@ export function setupTestTransaction() {
 
             // Start a transaction
             await transactionState.client.query("BEGIN");
-            console.log("🔄 Started test transaction");
+            // console.log("🔄 Started test transaction");
         }
         catch (error) {
             console.error("❌ Failed to setup test transaction:", error);
@@ -175,7 +175,7 @@ export function setupTestTransaction() {
             if (transactionState.client) {
                 // Roll back the transaction
                 await transactionState.client.query("ROLLBACK");
-                console.log("↩️ Rolled back test transaction");
+                // console.log("↩️ Rolled back test transaction");
 
                 // Release the client back to the pool
                 transactionState.client.release();
@@ -211,7 +211,7 @@ export async function truncateAllTables(db: TestDatabase) {
                   EXECUTE 'TRUNCATE TABLE ' || '${sql.raw(tables)}' || ' RESTART IDENTITY CASCADE'; 
                 END $$;
             `);
-            console.log(`🧹 Truncated tables: ${tables}`);
+            // console.log(`🧹 Truncated tables: ${tables}`);
         }
     }
     catch (error) {

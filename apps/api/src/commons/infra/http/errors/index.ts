@@ -16,7 +16,14 @@ export const errorHandler: FastifyInstance["errorHandler"] = function (
     request,
     reply,
 ) {
-    // Handle application-specific exceptions
+    if (error.validation || error.code === "FST_ERR_VALIDATION") {
+        return reply.status(400).send({
+            statusCode: 400,
+            error: "Bad Request",
+            message: error.message,
+        });
+    }
+
     if (error instanceof NotFoundException) {
         return reply.notFound(error.message);
     }
