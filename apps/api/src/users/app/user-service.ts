@@ -71,7 +71,18 @@ export class UserService {
             throw new UnauthorizedException("Invalid credentials");
         }
 
-        // Create a new session for the user
+        return await this.createSession(user, ipAddress, userAgent);
+    }
+
+    /**
+     * Create a session for the user
+     * @param user User to create session for
+     * @param ipAddress IP address of the client
+     * @param userAgent User agent of the client
+     * @returns User and session
+     */
+    async createSession(user: User, ipAddress?: string, userAgent?: string): Promise<{ user: User; session: Session }> {
+    // Create a new session for the user
         const session = await this.sessionService.createSession(user, ipAddress, userAgent);
 
         return { user, session };
