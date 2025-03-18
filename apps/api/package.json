@@ -11,7 +11,7 @@
         }
     },
     "scripts": {
-        "dev": "tsx --watch src/index.ts",
+        "dev": "tsx --watch --env-file=.env src/index.ts",
         "build": "tsc --project tsconfig.production.json",
         "start": "pnpm build && node dist/index.js",
         "lint": "eslint .",
@@ -31,6 +31,7 @@
         "@fastify/autoload": "^6.2.0",
         "@fastify/cookie": "^11.0.2",
         "@fastify/cors": "^11.0.0",
+        "@fastify/oauth2": "^8.1.2",
         "@fastify/sensible": "^6.0.3",
         "@fastify/swagger": "^9.4.2",
         "@fastify/swagger-ui": "^5.2.2",

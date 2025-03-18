@@ -1,4 +1,5 @@
 /* eslint-disable ts/consistent-type-definitions */
+import type { OAuth2Namespace } from "@fastify/oauth2";
 import type { TypeBoxTypeProvider } from "@fastify/type-provider-typebox";
 import type {
     ContextConfigDefault,
@@ -23,6 +24,8 @@ declare module "fastify" {
         authenticate: (request: FastifyRequest) => Promise<void>;
         userService: UserService;
         sessionService: SessionService;
+        googleOAuth2: OAuth2Namespace;
+        microsoftOAuth2: OAuth2Namespace;
     }
     interface FastifyRequest {
         user?: {
