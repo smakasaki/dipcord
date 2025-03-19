@@ -12,6 +12,7 @@ export function mapUserToResponse(user: User): any {
         name: user.name,
         surname: user.surname,
         email: user.email,
+        roles: user.roles,
         createdAt: user.createdAt.toISOString(),
         updatedAt: user.updatedAt.toISOString(),
     };

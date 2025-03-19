@@ -1,3 +1,5 @@
+// apps/api/src/commons/infra/http/server.ts
+
 import type { FastifyInstance } from "fastify";
 
 import cookie from "@fastify/cookie";
@@ -27,7 +29,7 @@ export default async function buildServer(app: FastifyInstance) {
         credentials: true,
     });
 
-    // Register Swagger documentation
+    // Register Swagger documentation for regular API
     app.register(swagger, {
         openapi: {
             info: {
@@ -45,9 +47,17 @@ export default async function buildServer(app: FastifyInstance) {
                 },
             },
         },
+        // Filter out admin routes from the main Swagger
+        transform: ({ schema, url }) => {
+            // Skip admin routes in the main Swagger
+            // if (url.startsWith("/v1/admin/")) {
+            //     return { schema: { hide: true }, url };
+            // }
+            return { schema, url };
+        },
     });
 
-    // Register Swagger UI
+    // Register Swagger UI for API
     app.register(swaggerUi, {
         routePrefix: "/documentation",
         uiConfig: {

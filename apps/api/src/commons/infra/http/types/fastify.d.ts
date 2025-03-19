@@ -15,6 +15,7 @@ import type {
 } from "fastify";
 
 import type { Database } from "#commons/infra/plugins/database.js";
+import type { SessionService } from "#users/app/session-service.js";
 import type { UserService } from "#users/app/user-service.js";
 
 declare module "fastify" {
@@ -22,6 +23,7 @@ declare module "fastify" {
         db: Database;
         authTokenService: AuthTokenService;
         authenticate: (request: FastifyRequest) => Promise<void>;
+        authenticateAdmin: (request: FastifyRequest) => Promise<void>;
         userService: UserService;
         sessionService: SessionService;
         googleOAuth2: OAuth2Namespace;
@@ -40,6 +42,7 @@ declare module "fastify" {
     interface RouteOptions {
         config?: {
             auth?: boolean;
+            adminAuth?: boolean;
         };
     }
 
