@@ -76,6 +76,15 @@ export class SessionService {
     }
 
     /**
+     * Find all sessions for a user
+     * @param userId User ID
+     * @returns Array of sessions
+     */
+    async findSessionsByUserId(userId: string): Promise<Session[]> {
+        return this.sessionRepository.findByUserId(userId);
+    }
+
+    /**
      * Update the last used timestamp for a session
      * @param sessionId Session ID
      * @returns Updated session

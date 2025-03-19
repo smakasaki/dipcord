@@ -1,0 +1,1 @@
+ALTER TABLE "users" ADD COLUMN "roles" jsonb DEFAULT '["user"]'::jsonb NOT NULL;

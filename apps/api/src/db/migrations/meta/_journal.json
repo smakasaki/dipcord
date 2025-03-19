@@ -15,6 +15,20 @@
       "when": 1741887288912,
       "tag": "0001_safe_iron_lad",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1742388817138,
+      "tag": "0002_organic_pride",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1742401116715,
+      "tag": "0003_cultured_bloodstorm",
+      "breakpoints": true
     }
   ]
 }

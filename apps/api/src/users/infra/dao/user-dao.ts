@@ -2,7 +2,7 @@ import { count, eq } from "drizzle-orm";
 
 import type { PaginatedResult, Pagination, SortBy } from "#commons/app/index.js";
 import type { Database } from "#commons/infra/plugins/database.js";
-import type { CreateUser, PasswordHashWithSalt, User } from "#users/app/models.js";
+import type { CreateUser, PasswordHashWithSalt, User, UserRole } from "#users/app/models.js";
 import type { IUserRepository } from "#users/app/user-repo.js";
 
 import { buildSortBy } from "#commons/infra/dao/utils.js";
@@ -43,6 +43,7 @@ export class UserDao implements IUserRepository {
                 name: users.name,
                 surname: users.surname,
                 email: users.email,
+                roles: users.roles,
                 createdAt: users.createdAt,
                 updatedAt: users.updatedAt,
             });
@@ -50,7 +51,11 @@ export class UserDao implements IUserRepository {
         if (!result[0])
             throw new Error("User not created");
 
-        return result[0];
+        // Ensure roles is properly typed
+        return {
+            ...result[0],
+            roles: result[0].roles as UserRole[],
+        };
     }
 
     /**
@@ -69,12 +74,13 @@ export class UserDao implements IUserRepository {
 
         const total = countResult[0]?.value ?? 0;
 
-        const result = await this.db
+        const rawResult = await this.db
             .select({
                 id: users.id,
                 name: users.name,
                 surname: users.surname,
                 email: users.email,
+                roles: users.roles,
                 createdAt: users.createdAt,
                 updatedAt: users.updatedAt,
             })
@@ -82,6 +88,12 @@ export class UserDao implements IUserRepository {
             .limit(pagination.limit)
             .offset(pagination.offset)
             .orderBy(...buildSortBy(sortBy));
+
+        // Ensure roles are properly typed
+        const result = rawResult.map(user => ({
+            ...user,
+            roles: user.roles as UserRole[],
+        }));
 
         return {
             count: total,
@@ -101,6 +113,7 @@ export class UserDao implements IUserRepository {
                 name: users.name,
                 surname: users.surname,
                 email: users.email,
+                roles: users.roles,
                 createdAt: users.createdAt,
                 updatedAt: users.updatedAt,
             })
@@ -108,7 +121,15 @@ export class UserDao implements IUserRepository {
             .where(eq(users.id, id))
             .limit(1);
 
-        return result[0];
+        if (!result[0]) {
+            return undefined;
+        }
+
+        // Ensure roles are properly typed
+        return {
+            ...result[0],
+            roles: result[0].roles as UserRole[],
+        };
     }
 
     /**
@@ -123,6 +144,7 @@ export class UserDao implements IUserRepository {
                 name: users.name,
                 surname: users.surname,
                 email: users.email,
+                roles: users.roles,
                 createdAt: users.createdAt,
                 updatedAt: users.updatedAt,
             })
@@ -130,7 +152,15 @@ export class UserDao implements IUserRepository {
             .where(eq(users.email, email))
             .limit(1);
 
-        return result[0];
+        if (!result[0]) {
+            return undefined;
+        }
+
+        // Ensure roles are properly typed
+        return {
+            ...result[0],
+            roles: result[0].roles as UserRole[],
+        };
     }
 
     /**
@@ -168,10 +198,147 @@ export class UserDao implements IUserRepository {
                 name: users.name,
                 surname: users.surname,
                 email: users.email,
+                roles: users.roles,
                 createdAt: users.createdAt,
                 updatedAt: users.updatedAt,
             });
 
-        return result[0];
+        if (!result[0]) {
+            return undefined;
+        }
+
+        // Ensure roles are properly typed
+        return {
+            ...result[0],
+            roles: result[0].roles as UserRole[],
+        };
+    }
+
+    /**
+     * Update user
+     * @param userId User ID
+     * @param userData User data to update
+     * @returns Updated user or undefined if not found
+     */
+    async update(
+        userId: User["id"],
+        userData: Partial<{ name: string; surname: string; email: string }>,
+    ): Promise<User | undefined> {
+    // Build update data with only the fields that are provided
+        const updateData: Partial<typeof users.$inferInsert> = {
+            updatedAt: new Date(),
+        };
+
+        if (userData.name !== undefined) {
+            updateData.name = userData.name;
+        }
+
+        if (userData.surname !== undefined) {
+            updateData.surname = userData.surname;
+        }
+
+        if (userData.email !== undefined) {
+            updateData.email = userData.email;
+        }
+
+        const result = await this.db
+            .update(users)
+            .set(updateData)
+            .where(eq(users.id, userId))
+            .returning({
+                id: users.id,
+                name: users.name,
+                surname: users.surname,
+                email: users.email,
+                roles: users.roles,
+                createdAt: users.createdAt,
+                updatedAt: users.updatedAt,
+            });
+
+        if (!result[0]) {
+            return undefined;
+        }
+
+        return {
+            ...result[0],
+            roles: result[0].roles as UserRole[],
+        };
+    }
+
+    /**
+     * Update user's password
+     * @param userId User ID
+     * @param passwordHash New password hash and salt
+     * @returns Updated user or undefined if not found
+     */
+    async updatePassword(
+        userId: User["id"],
+        passwordHash: PasswordHashWithSalt,
+    ): Promise<User | undefined> {
+        const result = await this.db
+            .update(users)
+            .set({
+                passwordHash: passwordHash.hash,
+                passwordSalt: passwordHash.salt,
+                updatedAt: new Date(),
+            })
+            .where(eq(users.id, userId))
+            .returning({
+                id: users.id,
+                name: users.name,
+                surname: users.surname,
+                email: users.email,
+                roles: users.roles,
+                createdAt: users.createdAt,
+                updatedAt: users.updatedAt,
+            });
+
+        if (!result[0]) {
+            return undefined;
+        }
+
+        // Ensure roles are properly typed
+        return {
+            ...result[0],
+            roles: result[0].roles as UserRole[],
+        };
+    }
+
+    /**
+     * Update user roles
+     * @param userId User ID
+     * @param roles New roles
+     * @returns Updated user or undefined if not found
+     */
+    async updateRoles(
+        userId: User["id"],
+        roles: UserRole[],
+    ): Promise<User | undefined> {
+        const result = await this.db
+            .update(users)
+            .set({
+                roles,
+                updatedAt: new Date(),
+            })
+            .where(eq(users.id, userId))
+            .returning({
+                id: users.id,
+                name: users.name,
+                surname: users.surname,
+                email: users.email,
+                roles: users.roles,
+                createdAt: users.createdAt,
+                updatedAt: users.updatedAt,
+            });
+
+        if (!result[0]) {
+            return undefined;
+        }
+
+        // Ensure roles are properly typed
+        return {
+            ...result[0],
+            roles: result[0].roles as UserRole[],
+        };
     }
 }

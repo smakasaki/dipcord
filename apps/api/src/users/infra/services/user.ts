@@ -2,6 +2,7 @@ import type { FastifyInstance } from "fastify";
 
 import fp from "fastify-plugin";
 
+import type { IPasswordResetTokenRepository } from "#users/app/password-reset-repo.js";
 import type { ISessionRepository } from "#users/app/session-repo.js";
 import type { IUserRepository } from "#users/app/user-repo.js";
 
@@ -10,6 +11,7 @@ import { SessionService } from "#users/app/session-service.js";
 import { UserService } from "#users/app/user-service.js";
 import { buildSessionConfig } from "#users/config/session-config.js";
 
+import { PasswordResetTokenDao } from "../dao/password-reset-dao.js";
 import { SessionDao } from "../dao/session-dao.js";
 import { UserDao } from "../dao/user-dao.js";
 
@@ -19,6 +21,7 @@ import { UserDao } from "../dao/user-dao.js";
 export default fp(async (fastify: FastifyInstance) => {
     const userRepository: IUserRepository = new UserDao(fastify.db);
     const sessionRepository: ISessionRepository = new SessionDao(fastify.db);
+    const passwordResetTokenRepository: IPasswordResetTokenRepository = new PasswordResetTokenDao(fastify.db);
 
     const passwordService = new PasswordService();
     const sessionConfig = buildSessionConfig();
@@ -28,6 +31,7 @@ export default fp(async (fastify: FastifyInstance) => {
         passwordService,
         sessionService,
         userRepository,
+        passwordResetTokenRepository,
     );
 
     fastify.decorate("sessionService", sessionService);
