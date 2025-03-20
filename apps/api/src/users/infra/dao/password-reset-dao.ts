@@ -1,4 +1,4 @@
-import { and, eq, isNull, lt, sql } from "drizzle-orm";
+import { and, eq, gt, isNull, lt } from "drizzle-orm";
 
 import type { Database } from "#commons/infra/plugins/database.js";
 import type { CreatePasswordResetTokenData, PasswordResetToken } from "#users/app/models.js";
@@ -64,6 +64,7 @@ export class PasswordResetTokenDao implements IPasswordResetTokenRepository {
      * @returns Token or undefined if not found
      */
     async findActiveByUserId(userId: string): Promise<PasswordResetToken | undefined> {
+        const now = new Date();
         const result = await this.db
             .select()
             .from(passwordResetTokens)
@@ -71,7 +72,7 @@ export class PasswordResetTokenDao implements IPasswordResetTokenRepository {
                 and(
                     eq(passwordResetTokens.userId, userId),
                     isNull(passwordResetTokens.usedAt),
-                    lt(passwordResetTokens.expiresAt, sql`CURRENT_TIMESTAMP`),
+                    gt(passwordResetTokens.expiresAt, now),
                 ),
             )
             .orderBy(passwordResetTokens.createdAt)

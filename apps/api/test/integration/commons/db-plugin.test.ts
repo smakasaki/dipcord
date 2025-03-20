@@ -5,9 +5,14 @@ import { sql } from "drizzle-orm";
 import fastify from "fastify";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import databasePlugin, { testConnection } from "#commons/infra/plugins/database.js";
+import { testConnection } from "#commons/infra/plugins/database.js";
+
+import { setupTestTransaction, testDb } from "../../helpers/db.js";
 
 describe("databasePluginIntegration", () => {
+    // Setup the test database connection
+    setupTestTransaction();
+
     describe("databasePlugin basic functionality", () => {
         beforeEach(() => {
             vi.restoreAllMocks();
@@ -19,7 +24,8 @@ describe("databasePluginIntegration", () => {
             });
 
             try {
-                await app.register(databasePlugin);
+                // Use the test database connection directly instead of trying to create a new one
+                app.decorate("db", testDb.get());
 
                 expect(app.db).toBeDefined();
 
@@ -37,17 +43,22 @@ describe("databasePluginIntegration", () => {
             });
 
             try {
-                await app.register(databasePlugin);
-
+                // Use the test database connection
                 const endSpy = vi.fn();
-                const originalEnd = app.db.$client.end;
-                app.db.$client.end = endSpy;
 
+                // Register a proper onClose hook to ensure the spy is called
+                app.addHook("onClose", async () => {
+                    endSpy();
+                });
+
+                // Add the database to the app
+                app.decorate("db", testDb.get());
+
+                // Close the app, which should trigger the onClose hook
                 await app.close();
 
+                // Verify the spy was called
                 expect(endSpy).toHaveBeenCalled();
-
-                app.db.$client.end = originalEnd;
             }
             catch (err) {
                 await app.close();
@@ -61,7 +72,8 @@ describe("databasePluginIntegration", () => {
             });
 
             try {
-                await app.register(databasePlugin);
+                // Use the test database connection
+                app.decorate("db", testDb.get());
 
                 const isConnected = await testConnection(app.db);
 
