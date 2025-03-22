@@ -22,6 +22,7 @@ describe("password reset API", () => {
                 name: "Reset",
                 surname: "Test",
                 email,
+                username: `testuser_${randomUUID().substring(0, 8)}`,
                 password,
             });
 
@@ -78,6 +79,7 @@ describe("password reset API", () => {
                 name: "Password",
                 surname: "Reset",
                 email,
+                username: `testuser_${randomUUID().substring(0, 8)}`,
                 password: oldPassword,
             });
 
