@@ -3,13 +3,13 @@ import type { FastifyPluginAsyncTypebox } from "@fastify/type-provider-typebox";
 import {
     AdminErrorResponses,
     AdminUpdateUserSchema,
-    CreateUserSchema,
+    CreateUserRequest,
     NoContent,
-    PaginatedUsersSchema,
+    PaginatedUsersResponse,
     Pagination,
-    UserIdParamSchema,
+    UserIdParam,
+    UserResponse,
     UserRoleUpdatedSchema,
-    UserSchema,
 } from "@dipcord/schema";
 import { Type } from "@fastify/type-provider-typebox";
 
@@ -55,7 +55,7 @@ const routes: FastifyPluginAsyncTypebox = async function (fastify): Promise<void
                 }),
             ]),
             response: {
-                200: PaginatedUsersSchema,
+                200: PaginatedUsersResponse,
                 ...AdminErrorResponses,
             },
             security: [{ cookieAuth: [] }],
@@ -89,9 +89,9 @@ const routes: FastifyPluginAsyncTypebox = async function (fastify): Promise<void
         schema: {
             tags: ["Admin", "Users"],
             description: "Get user by ID",
-            params: UserIdParamSchema,
+            params: UserIdParam,
             response: {
-                200: UserSchema,
+                200: UserResponse,
                 ...AdminErrorResponses,
             },
             security: [{ cookieAuth: [] }],
@@ -111,9 +111,9 @@ const routes: FastifyPluginAsyncTypebox = async function (fastify): Promise<void
         schema: {
             tags: ["Admin", "Users"],
             description: "Create a new user",
-            body: CreateUserSchema,
+            body: CreateUserRequest,
             response: {
-                201: UserSchema,
+                201: UserResponse,
                 ...AdminErrorResponses,
             },
             security: [{ cookieAuth: [] }],
@@ -133,10 +133,10 @@ const routes: FastifyPluginAsyncTypebox = async function (fastify): Promise<void
         schema: {
             tags: ["Admin", "Users"],
             description: "Update user",
-            params: UserIdParamSchema,
+            params: UserIdParam,
             body: AdminUpdateUserSchema,
             response: {
-                200: UserSchema,
+                200: UserResponse,
                 ...AdminErrorResponses,
             },
             security: [{ cookieAuth: [] }],
@@ -160,7 +160,7 @@ const routes: FastifyPluginAsyncTypebox = async function (fastify): Promise<void
         schema: {
             tags: ["Admin", "Users"],
             description: "Delete user",
-            params: UserIdParamSchema,
+            params: UserIdParam,
             response: {
                 204: NoContent,
                 ...AdminErrorResponses,
@@ -182,7 +182,7 @@ const routes: FastifyPluginAsyncTypebox = async function (fastify): Promise<void
         schema: {
             tags: ["Admin", "Users"],
             description: "Add admin role to user",
-            params: UserIdParamSchema,
+            params: UserIdParam,
             response: {
                 200: UserRoleUpdatedSchema,
                 ...AdminErrorResponses,
@@ -208,7 +208,7 @@ const routes: FastifyPluginAsyncTypebox = async function (fastify): Promise<void
         schema: {
             tags: ["Admin", "Users"],
             description: "Remove admin role from user",
-            params: UserIdParamSchema,
+            params: UserIdParam,
             response: {
                 200: UserRoleUpdatedSchema,
                 ...AdminErrorResponses,

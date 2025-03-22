@@ -2,11 +2,11 @@ import type { FastifyPluginAsyncTypebox } from "@fastify/type-provider-typebox";
 
 import {
     NoContent,
-    PublicUserProfileSchema,
-    UpdateUserProfileSchema,
+    PublicUserProfileResponse,
+    UpdateUserProfileRequest,
     UserErrorResponses,
-    UserIdParamSchema,
-    UserSchema,
+    UserIdParam,
+    UserResponse,
 } from "@dipcord/schema";
 
 import { mapUserToResponse } from "#users/infra/utils/user-mapper.js";
@@ -27,7 +27,7 @@ const routes: FastifyPluginAsyncTypebox = async function (fastify): Promise<void
             tags: ["Users"],
             description: "Get current user profile",
             response: {
-                200: UserSchema,
+                200: UserResponse,
                 ...UserErrorResponses,
             },
             security: [{ cookieAuth: [] }],
@@ -47,9 +47,9 @@ const routes: FastifyPluginAsyncTypebox = async function (fastify): Promise<void
         schema: {
             tags: ["Users"],
             description: "Update current user profile",
-            body: UpdateUserProfileSchema,
+            body: UpdateUserProfileRequest,
             response: {
-                200: UserSchema,
+                200: UserResponse,
                 ...UserErrorResponses,
             },
             security: [{ cookieAuth: [] }],
@@ -100,9 +100,9 @@ const routes: FastifyPluginAsyncTypebox = async function (fastify): Promise<void
         schema: {
             tags: ["Users"],
             description: "Get user public profile by ID",
-            params: UserIdParamSchema,
+            params: UserIdParam,
             response: {
-                200: PublicUserProfileSchema,
+                200: PublicUserProfileResponse,
                 ...UserErrorResponses,
             },
             security: [{ cookieAuth: [] }],

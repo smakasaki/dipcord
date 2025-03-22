@@ -4,6 +4,8 @@
 import { randomUUID } from "node:crypto";
 import { describe, expect, it } from "vitest";
 
+import user from "#users/infra/services/user.js";
+
 import { authenticatedUser, createAdminUser } from "../../helpers/auth.js";
 import { setupApiTest } from "../setup.js";
 
@@ -125,6 +127,7 @@ describe("admin users API", () => {
                 name: "Created",
                 surname: "ByAdmin",
                 email: `created.by.admin.${randomUUID().substring(0, 8)}@example.com`,
+                username: `admin_${randomUUID().substring(0, 8)}`,
                 password: "SecurePassword123!",
             };
 

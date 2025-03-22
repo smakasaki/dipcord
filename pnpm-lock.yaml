@@ -179,9 +179,15 @@ importers:
         specifier: ^0.34.29
         version: 0.34.29
     devDependencies:
+      '@dipcord/eslint-config':
+        specifier: workspace:*
+        version: link:../eslint-config
       '@dipcord/typescript-config':
         specifier: workspace:*
         version: link:../typescript-config
+      eslint:
+        specifier: ^9.21.0
+        version: 9.21.0
       typescript:
         specifier: ^5.8.2
         version: 5.8.2

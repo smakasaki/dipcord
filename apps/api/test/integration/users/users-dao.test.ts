@@ -1,11 +1,11 @@
-import type { UserRole } from "@dipcord/schema";
-
 import { randomUUID } from "node:crypto";
 /**
  * Integration tests for UserDao
  * Focus on database interactions without API layer
  */
 import { describe, expect, it } from "vitest";
+
+import type { UserRole } from "#users/app/models.js";
 
 import { UserDao } from "#users/infra/dao/user-dao.js";
 

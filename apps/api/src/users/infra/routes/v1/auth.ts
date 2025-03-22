@@ -1,15 +1,12 @@
 import type { FastifyPluginAsyncTypebox } from "@fastify/type-provider-typebox";
 
 import {
-    ChangePasswordSchema,
-    CreateUserSchema,
-    LoginSchema,
-    RequestPasswordResetSchema,
-    ResetPasswordSchema,
+    CreateUserRequest,
+    NoContent,
     UserErrorResponses,
-    UserSchema,
+    UserResponse,
 } from "@dipcord/schema";
-import { Type } from "@sinclair/typebox";
+import { ChangePasswordRequest, LoginRequest, RequestPasswordResetRequest, ResetPasswordRequest } from "@dipcord/schema/auth";
 
 import { mapUserToResponse } from "#users/infra/utils/user-mapper.js";
 
@@ -27,9 +24,9 @@ const routes: FastifyPluginAsyncTypebox = async function (fastify): Promise<void
         schema: {
             tags: ["Auth"],
             description: "Register a new user",
-            body: CreateUserSchema,
+            body: CreateUserRequest,
             response: {
-                201: UserSchema,
+                201: UserResponse,
                 ...UserErrorResponses,
             },
         },
@@ -62,9 +59,9 @@ const routes: FastifyPluginAsyncTypebox = async function (fastify): Promise<void
         schema: {
             tags: ["Auth"],
             description: "Login and create session",
-            body: LoginSchema,
+            body: LoginRequest,
             response: {
-                200: UserSchema,
+                200: UserResponse,
                 ...UserErrorResponses,
             },
         },
@@ -97,7 +94,7 @@ const routes: FastifyPluginAsyncTypebox = async function (fastify): Promise<void
             tags: ["Auth"],
             description: "Logout and destroy session",
             response: {
-                204: {},
+                204: NoContent,
                 ...UserErrorResponses,
             },
             security: [{ cookieAuth: [] }],
@@ -130,7 +127,7 @@ const routes: FastifyPluginAsyncTypebox = async function (fastify): Promise<void
             tags: ["Auth"],
             description: "Get current user session information",
             response: {
-                200: UserSchema,
+                200: UserResponse,
                 ...UserErrorResponses,
             },
             security: [{ cookieAuth: [] }],
@@ -150,9 +147,9 @@ const routes: FastifyPluginAsyncTypebox = async function (fastify): Promise<void
         schema: {
             tags: ["Auth"],
             description: "Request a password reset",
-            body: RequestPasswordResetSchema,
+            body: RequestPasswordResetRequest,
             response: {
-                204: Type.Object({}),
+                204: NoContent,
                 ...UserErrorResponses,
             },
         },
@@ -186,9 +183,9 @@ const routes: FastifyPluginAsyncTypebox = async function (fastify): Promise<void
         schema: {
             tags: ["Auth"],
             description: "Reset password using token",
-            body: ResetPasswordSchema,
+            body: ResetPasswordRequest,
             response: {
-                204: Type.Object({}),
+                204: NoContent,
                 ...UserErrorResponses,
             },
         },
@@ -211,9 +208,9 @@ const routes: FastifyPluginAsyncTypebox = async function (fastify): Promise<void
         schema: {
             tags: ["Auth"],
             description: "Change password for authenticated user",
-            body: ChangePasswordSchema,
+            body: ChangePasswordRequest,
             response: {
-                204: Type.Object({}),
+                204: NoContent,
                 ...UserErrorResponses,
             },
             security: [{ cookieAuth: [] }],

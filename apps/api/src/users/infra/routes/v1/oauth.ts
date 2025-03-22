@@ -1,6 +1,6 @@
 import type { FastifyPluginAsyncTypebox } from "@fastify/type-provider-typebox";
 
-import { UserErrorResponses, UserSchema } from "@dipcord/schema";
+import { UserErrorResponses, UserResponse } from "@dipcord/schema";
 import { Type } from "@sinclair/typebox";
 
 import { UnauthorizedException } from "#commons/app/exceptions.js";
@@ -21,7 +21,7 @@ const routes: FastifyPluginAsyncTypebox = async function (fastify): Promise<void
             tags: ["Auth", "OAuth"],
             description: "Google OAuth callback endpoint",
             response: {
-                200: UserSchema,
+                200: UserResponse,
                 ...UserErrorResponses,
             },
         },
@@ -87,7 +87,7 @@ const routes: FastifyPluginAsyncTypebox = async function (fastify): Promise<void
             tags: ["Auth", "OAuth"],
             description: "Microsoft OAuth callback endpoint",
             response: {
-                200: UserSchema,
+                200: UserResponse,
                 ...UserErrorResponses,
             },
         },
