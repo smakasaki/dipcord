@@ -356,4 +356,12 @@ export class UserService {
 
         return updatedUser;
     }
+
+    /**
+     * Get the password reset token repository - for testing purposes only
+     * @returns Password reset token repository
+     */
+    getPasswordResetTokenRepository(): IPasswordResetTokenRepository {
+        return this.passwordResetTokenRepository;
+    }
 }

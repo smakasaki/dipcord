@@ -125,3 +125,77 @@ export async function authenticatedUser(app: FastifyInstance, userData?: Partial
         },
     };
 }
+
+/**
+ * Helper to create an admin user for testing
+ * @param app Fastify instance
+ * @param userData Optional user data overrides
+ * @returns Object with admin user and methods for authenticated requests
+ */
+export async function createAdminUser(
+    app: FastifyInstance,
+    userData?: Partial<{
+        name: string;
+        surname: string;
+        email: string;
+        password: string;
+    }>,
+) {
+    // Create a regular user first with admin-related default values
+    const { user, token } = await createTestUser(app, {
+        name: userData?.name ?? "Admin",
+        surname: userData?.surname ?? "User",
+        email: userData?.email ?? `admin.user.${randomUUID().substring(0, 8)}@example.com`,
+        password: userData?.password,
+    });
+
+    // Get cookie name for authorization
+    const { name: cookieName } = app.sessionService.getCookieConfig();
+
+    // Grant admin role
+    await app.userService.addAdminRole(user.id);
+
+    // Return the admin user with authentication helpers
+    return {
+        user,
+        token,
+        async get(url: string) {
+            return app.inject({
+                method: "GET",
+                url,
+                cookies: {
+                    [cookieName]: token,
+                },
+            });
+        },
+        async post(url: string, payload?: Record<string, unknown>) {
+            return app.inject({
+                method: "POST",
+                url,
+                payload,
+                cookies: {
+                    [cookieName]: token,
+                },
+            });
+        },
+        async put(url: string, payload: Record<string, unknown>) {
+            return app.inject({
+                method: "PUT",
+                url,
+                payload,
+                cookies: {
+                    [cookieName]: token,
+                },
+            });
+        },
+        async delete(url: string) {
+            return app.inject({
+                method: "DELETE",
+                url,
+                cookies: {
+                    [cookieName]: token,
+                },
+            });
+        },
+    };
+}
