@@ -13,6 +13,7 @@ import type {
     RawServerDefault,
     RouteGenericInterface,
 } from "fastify";
+import type { RedisClientType } from "redis";
 
 import type { Database } from "#commons/infra/plugins/database.js";
 import type { SessionService } from "#users/app/session-service.js";
@@ -21,6 +22,7 @@ import type { UserService } from "#users/app/user-service.js";
 declare module "fastify" {
     interface FastifyInstance {
         db: Database;
+        redis: RedisClientType<RedisDefaultModules & RedisFunctions & RedisScripts>;
         authTokenService: AuthTokenService;
         authenticate: (request: FastifyRequest) => Promise<void>;
         authenticateAdmin: (request: FastifyRequest) => Promise<void>;
