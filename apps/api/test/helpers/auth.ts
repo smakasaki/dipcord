@@ -20,6 +20,7 @@ export async function createTestUser(
         name: string;
         surname: string;
         email: string;
+        username: string;
         password: string;
     }> = {},
 ): Promise<{ user: User; token: string }> {
@@ -41,6 +42,7 @@ export async function createTestUser(
         name: userData.name ?? "Test",
         surname: userData.surname ?? "User",
         email: userData.email ?? `test.user.${uniqueId}.${timestamp}@example.com`,
+        username: userData.username ?? `testuser_${uniqueId}`,
         password: userData.password ?? "Password123!",
     });
 
@@ -63,6 +65,7 @@ export async function authenticatedUser(app: FastifyInstance, userData?: Partial
     name: string;
     surname: string;
     email: string;
+    username: string;
     password: string;
 }>) {
     // Check for services

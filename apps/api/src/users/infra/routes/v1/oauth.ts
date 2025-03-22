@@ -52,6 +52,7 @@ const routes: FastifyPluginAsyncTypebox = async function (fastify): Promise<void
                     name: googleProfile.given_name || googleProfile.name || "Google",
                     surname: googleProfile.family_name || "User",
                     email: googleProfile.email,
+                    username: `google-${googleProfile.sub}`,
                     // Generate a secure random password since we won't use it for OAuth users
                     password: crypto.randomUUID(),
                 });
@@ -117,6 +118,7 @@ const routes: FastifyPluginAsyncTypebox = async function (fastify): Promise<void
                     name: microsoftProfile.givenName || microsoftProfile.displayName || "Microsoft",
                     surname: microsoftProfile.surname || "User",
                     email: microsoftProfile.mail || microsoftProfile.userPrincipalName,
+                    username: `microsoft-${microsoftProfile.id}`,
                     // Generate a secure random password since we won't use it for OAuth users
                     password: crypto.randomUUID(),
                 });

@@ -125,6 +125,7 @@ describe("users API", () => {
             expect(body).toHaveProperty("id", auth.user.id);
             expect(body).toHaveProperty("name", auth.user.name);
             expect(body).toHaveProperty("surname", auth.user.surname);
+            expect(body).toHaveProperty("username", auth.user.username);
             // Public profile should not include email
             expect(body).not.toHaveProperty("email");
         });

@@ -14,6 +14,7 @@ const UserBase = Type.Object({
   name: Type.String(),
   surname: Type.String(),
   email: Type.String({ format: 'email' }),
+  username: Type.String({ minLength: 3, maxLength: 20, pattern: '^[a-zA-Z0-9_]+$' }),
 });
 
 // Create user request body
@@ -60,6 +61,7 @@ export const PublicUserProfileSchema = Type.Intersect([
   Type.Object({
     name: Type.String(),
     surname: Type.String(),
+    username: Type.String(),
   }),
 ]);
 

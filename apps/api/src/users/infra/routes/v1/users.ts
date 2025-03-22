@@ -115,6 +115,7 @@ const routes: FastifyPluginAsyncTypebox = async function (fastify): Promise<void
             id: user.id,
             name: user.name,
             surname: user.surname,
+            username: user.username,
             // Email is excluded from public profile
         };
     });
