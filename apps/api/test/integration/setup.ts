@@ -12,7 +12,10 @@ import fastify from "fastify";
 import { afterAll, afterEach, beforeAll } from "vitest";
 
 import { errorHandler } from "#commons/infra/http/errors/index.js";
+import adminAuth from "#users/infra/plugins/admin-auth.js";
 import authPlugin from "#users/infra/plugins/auth.js";
+import adminAuthRoutes from "#users/infra/routes/v1/admin/auth.js";
+import adminUsersRoutes from "#users/infra/routes/v1/admin/users.js";
 import authRoutes from "#users/infra/routes/v1/auth.js";
 import usersRoutes from "#users/infra/routes/v1/users.js";
 import userServicesPlugin from "#users/infra/services/user.js";
@@ -53,18 +56,21 @@ export async function createApiTestServer(): Promise<FastifyInstance> {
         // Register services and plugins
         await app.register(userServicesPlugin);
         await app.register(authPlugin);
+        await app.register(adminAuth);
 
         // Register routes
         await app.register(usersRoutes, { prefix: "/v1" });
+        await app.register(adminUsersRoutes, { prefix: "/v1/admin/users" });
+
         await app.register(authRoutes, { prefix: "/v1" });
+        await app.register(adminAuthRoutes, { prefix: "/v1/admin/auth" });
 
         // Add basic health check
         app.get("/health", () => ({ status: "healthy" }));
 
         // Make sure server is ready
         await app.ready();
-
-        console.log("🚀 Test API server initialized");
+        // console.log(app.printRoutes());
 
         return app;
     }
@@ -105,7 +111,6 @@ export function setupApiTest() {
         try {
             if (server) {
                 await server.close();
-                console.log("✅ Test API server closed");
             }
         }
         catch (error) {
