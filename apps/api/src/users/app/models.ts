@@ -1,7 +1,19 @@
+export type User = {
+    id: string; // UUID string
+    name: string;
+    surname: string;
+    email: string;
+    username: string;
+    roles: UserRole[];
+    createdAt: Date;
+    updatedAt: Date;
+};
+
 export type CreateUser = {
     name: string;
     surname: string;
     email: string;
+    username: string;
     password: string;
 };
 
@@ -15,16 +27,6 @@ export type AuthToken = {
 };
 
 export type UserRole = "user" | "admin";
-
-export type User = {
-    id: string; // UUID string
-    name: string;
-    surname: string;
-    email: string;
-    roles: UserRole[];
-    createdAt: Date;
-    updatedAt: Date;
-};
 
 export type PasswordHashWithSalt = {
     hash: string;
