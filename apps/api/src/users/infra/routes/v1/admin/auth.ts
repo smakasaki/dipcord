@@ -4,10 +4,10 @@ import {
     AdminErrorResponses,
     DeleteAllUserSessionsResponseSchema,
     DeleteSessionResponseSchema,
-    SessionsListSchema,
-    UserIdParamSchema,
-    UserSchema,
+    UserIdParam,
+    UserResponse,
 } from "@dipcord/schema";
+import { SessionsListResponse } from "@dipcord/schema/auth";
 import { Type } from "@sinclair/typebox";
 
 import { mapUserToResponse } from "#users/infra/utils/user-mapper.js";
@@ -27,7 +27,7 @@ const routes: FastifyPluginAsyncTypebox = async function (fastify): Promise<void
             tags: ["Admin", "Auth"],
             description: "Get current admin profile",
             response: {
-                200: UserSchema,
+                200: UserResponse,
                 ...AdminErrorResponses,
             },
             security: [{ cookieAuth: [] }],
@@ -47,9 +47,9 @@ const routes: FastifyPluginAsyncTypebox = async function (fastify): Promise<void
         schema: {
             tags: ["Admin", "Auth"],
             description: "List all sessions for a user (admin only)",
-            params: UserIdParamSchema,
+            params: UserIdParam,
             response: {
-                200: SessionsListSchema,
+                200: SessionsListResponse,
                 ...AdminErrorResponses,
             },
             security: [{ cookieAuth: [] }],
@@ -113,7 +113,7 @@ const routes: FastifyPluginAsyncTypebox = async function (fastify): Promise<void
         schema: {
             tags: ["Admin", "Auth"],
             description: "Terminate all sessions for a user (admin only)",
-            params: UserIdParamSchema,
+            params: UserIdParam,
             response: {
                 200: DeleteAllUserSessionsResponseSchema,
                 ...AdminErrorResponses,
@@ -143,7 +143,7 @@ const routes: FastifyPluginAsyncTypebox = async function (fastify): Promise<void
         schema: {
             tags: ["Admin", "Auth"],
             description: "Force password reset for a user (admin only)",
-            params: UserIdParamSchema,
+            params: UserIdParam,
             response: {
                 200: Type.Object({
                     success: Type.Boolean(),
