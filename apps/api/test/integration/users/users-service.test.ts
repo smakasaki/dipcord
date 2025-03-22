@@ -8,6 +8,7 @@ import { UnauthorizedException } from "#commons/app/index.js";
 import { PasswordService } from "#users/app/password-service.js";
 import { SessionService } from "#users/app/session-service.js";
 import { UserService } from "#users/app/user-service.js";
+import { PasswordResetTokenDao } from "#users/infra/dao/password-reset-dao.js";
 import { SessionDao } from "#users/infra/dao/session-dao.js";
 import { UserDao } from "#users/infra/dao/user-dao.js";
 
@@ -27,6 +28,7 @@ describe("userServiceIntegration", () => {
         // Create real instances with database connection
         const userDao = new UserDao(db);
         const sessionDao = new SessionDao(db);
+        const passwordResetTokenDao = new PasswordResetTokenDao(db);
 
         passwordService = new PasswordService();
         sessionService = new SessionService(sessionDao, {
@@ -42,6 +44,7 @@ describe("userServiceIntegration", () => {
             passwordService,
             sessionService,
             userDao,
+            passwordResetTokenDao,
         );
     });
 
@@ -53,6 +56,7 @@ describe("userServiceIntegration", () => {
                 name: "Test",
                 surname: "User",
                 email: `test.user.${uniqueId}@example.com`,
+                username: `testuser${uniqueId}`,
                 password: "SecurePassword123!",
             };
 
@@ -89,6 +93,7 @@ describe("userServiceIntegration", () => {
                 name: "Test",
                 surname: "User",
                 email: `test.user.${uniqueId}@example.com`,
+                username: `testuser${uniqueId}`,
                 password: "CorrectPassword123!",
             };
 
@@ -118,6 +123,7 @@ describe("userServiceIntegration", () => {
                 name: "Find",
                 surname: "ById",
                 email: `find.byid.${uniqueId}@example.com`,
+                username: `testuser${uniqueId}`,
                 password: "Password123!",
             };
 
@@ -139,6 +145,7 @@ describe("userServiceIntegration", () => {
                 name: "Find",
                 surname: "ByEmail",
                 email: `find.byemail.${uniqueId}@example.com`,
+                username: `testuser${uniqueId}`,
                 password: "Password123!",
             };
 
@@ -169,6 +176,7 @@ describe("userServiceIntegration", () => {
                 name: "Charlie",
                 surname: "User",
                 email: `charlie.${timestamp}@example.com`,
+                username: `testuserblabla`,
                 password: "Password123!",
             });
 
@@ -176,6 +184,7 @@ describe("userServiceIntegration", () => {
                 name: "Alpha",
                 surname: "User",
                 email: `alpha.${timestamp}@example.com`,
+                username: `testuserbla`,
                 password: "Password123!",
             });
 
@@ -183,6 +192,7 @@ describe("userServiceIntegration", () => {
                 name: "Bravo",
                 surname: "User",
                 email: `bravo.${timestamp}@example.com`,
+                username: `testuserblaba`,
                 password: "Password123!",
             });
 
@@ -217,6 +227,7 @@ describe("userServiceIntegration", () => {
                 name: "Delete",
                 surname: "Test",
                 email: `delete.test.${uniqueId}@example.com`,
+                username: `testuser${uniqueId}`,
                 password: "Password123!",
             };
 
@@ -252,6 +263,7 @@ describe("userServiceIntegration", () => {
                 name: "Logout",
                 surname: "Test",
                 email: `logout.test.${uniqueId}@example.com`,
+                username: `testuser${uniqueId}`,
                 password: "Password123!",
             };
 

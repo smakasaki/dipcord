@@ -19,6 +19,8 @@ export function createUserFixture(overrides: Partial<User> = {}): User {
         name: overrides.name ?? "Test",
         surname: overrides.surname ?? "User",
         email: overrides.email ?? `test.user.${uniqueId}@example.com`,
+        username: overrides.username ?? `testuser_${uniqueId}`,
+        roles: overrides.roles ?? ["user"],
         createdAt: overrides.createdAt ?? new Date(),
         updatedAt: overrides.updatedAt ?? new Date(),
     };

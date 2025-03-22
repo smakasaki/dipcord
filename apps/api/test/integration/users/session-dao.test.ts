@@ -29,6 +29,7 @@ describe("sessionDao", () => {
             name: "Test",
             surname: "User",
             email,
+            username: `testuser${uniqueId}`,
         };
 
         const passwordHash = createPasswordHashFixture();

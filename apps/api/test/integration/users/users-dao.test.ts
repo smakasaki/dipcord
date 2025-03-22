@@ -1,3 +1,5 @@
+import type { UserRole } from "@dipcord/schema";
+
 import { randomUUID } from "node:crypto";
 /**
  * Integration tests for UserDao
@@ -25,6 +27,7 @@ describe("userDao", () => {
             name: "Test",
             surname: "User",
             email,
+            username: `testuser${uniqueId}`,
         };
 
         const passwordHash = createPasswordHashFixture();
@@ -65,6 +68,7 @@ describe("userDao", () => {
                     name: "Another",
                     surname: "User",
                     email: user.email, // Same email
+                    username: `anotheruser${suffix}`,
                 };
 
                 await userDao.create(userData, createPasswordHashFixture());
@@ -207,6 +211,7 @@ describe("userDao", () => {
                 name: "Password",
                 surname: "Test",
                 email: `password.test.${randomUUID().substring(0, 8)}@example.com`,
+                username: `passwordtest`,
             };
 
             const passwordFixture = createPasswordHashFixture();
@@ -232,6 +237,8 @@ describe("userDao", () => {
                 name: "Fake",
                 surname: "User",
                 email: "fake@example.com",
+                username: "fakeuser",
+                roles: ["user", "admin"] as UserRole[],
                 createdAt: new Date(),
                 updatedAt: new Date(),
             };
