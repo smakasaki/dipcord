@@ -9,6 +9,7 @@ import cookie from "@fastify/cookie";
 import cors from "@fastify/cors";
 import sensible from "@fastify/sensible";
 import fastify from "fastify";
+import fp from "fastify-plugin";
 import { afterAll, afterEach, beforeAll } from "vitest";
 
 import { errorHandler } from "#commons/infra/http/errors/index.js";
@@ -51,7 +52,11 @@ export async function createApiTestServer(): Promise<FastifyInstance> {
         app.setErrorHandler(errorHandler);
 
         // Используем уже существующую БД, инициализированную в setup.integration.ts
-        app.decorate("db", testDb.get());
+        await app.register(fp((instance, _, done) => {
+            instance.decorate("db", testDb.get());
+            instance.log.info("Test database registered");
+            done();
+        }, { name: "database" }));
 
         // Register services and plugins
         await app.register(userServicesPlugin);

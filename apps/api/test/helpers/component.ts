@@ -1,8 +1,3 @@
-/**
- * Component testing helper
- * Creates focused Fastify instances with only selected plugins
- * For use in integration tests only
- */
 import type { TypeBoxTypeProvider } from "@fastify/type-provider-typebox";
 import type { FastifyInstance } from "fastify";
 
@@ -10,6 +5,7 @@ import cookie from "@fastify/cookie";
 import cors from "@fastify/cors";
 import sensible from "@fastify/sensible";
 import fastify from "fastify";
+import fp from "fastify-plugin";
 import { afterEach, beforeEach } from "vitest";
 
 import { errorHandler } from "#commons/infra/http/errors/index.js";
@@ -59,8 +55,10 @@ export async function createFocusedComponent(options: ComponentPlugins = {}): Pr
 
         // Conditionally register plugins based on options
         if (options.database) {
-            // Используем уже существующую БД, инициализированную в setup.integration.ts
-            app.decorate("db", testDb.get());
+            await app.register(fp((instance, _, done) => {
+                instance.decorate("db", testDb.get());
+                done();
+            }, { name: "database" }));
         }
 
         // Register user services if needed
