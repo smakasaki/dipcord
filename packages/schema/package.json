@@ -8,7 +8,8 @@
         "./user": "./user/index.ts",
         "./admin": "./admin/index.ts",
         "./auth": "./auth/index.ts",
-        "./common": "./common/index.ts"
+        "./common": "./common/index.ts",
+        "./channel": "./channel/index.ts"
     },
     "scripts": {
         "lint": "eslint .",
