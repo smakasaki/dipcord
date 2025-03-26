@@ -12,6 +12,8 @@ import fastify from "fastify";
 import fp from "fastify-plugin";
 import { afterAll, afterEach, beforeAll } from "vitest";
 
+import channelsRoutes from "#channels/infra/routes/v1/channels.js";
+import channelServicesPlugin from "#channels/infra/services/channel.js";
 import { errorHandler } from "#commons/infra/http/errors/index.js";
 import adminAuth from "#users/infra/plugins/admin-auth.js";
 import authPlugin from "#users/infra/plugins/auth.js";
@@ -22,6 +24,7 @@ import usersRoutes from "#users/infra/routes/v1/users.js";
 import userServicesPlugin from "#users/infra/services/user.js";
 
 import { setupTestTransaction, testDb } from "../helpers/db.js";
+import { setupRedisIsolation, testRedis } from "../helpers/redis.js";
 
 /**
  * Create a complete test server with all components
@@ -58,6 +61,12 @@ export async function createApiTestServer(): Promise<FastifyInstance> {
             done();
         }, { name: "database" }));
 
+        await app.register(fp((instance, _, done) => {
+            instance.decorate("redis", testRedis.get());
+            instance.log.info("Test redis registered");
+            done();
+        }, { name: "redis" }));
+
         // Register services and plugins
         await app.register(userServicesPlugin);
         await app.register(authPlugin);
@@ -69,6 +78,9 @@ export async function createApiTestServer(): Promise<FastifyInstance> {
 
         await app.register(authRoutes, { prefix: "/v1" });
         await app.register(adminAuthRoutes, { prefix: "/v1/admin/auth" });
+
+        await app.register(channelServicesPlugin);
+        await app.register(channelsRoutes, { prefix: "/v1/" });
 
         // Add basic health check
         app.get("/health", () => ({ status: "healthy" }));
@@ -91,6 +103,7 @@ export async function createApiTestServer(): Promise<FastifyInstance> {
  */
 export function setupApiTest() {
     setupTestTransaction();
+    setupRedisIsolation();
 
     // Server instance
     let server: FastifyInstance;
