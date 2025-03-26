@@ -1,15 +1,17 @@
-import type { FastifyInstance, FastifyRequest } from "fastify";
+import type { FastifyPluginAsync, FastifyRequest } from "fastify";
 
 import fp from "fastify-plugin";
 
-import { UnauthorizedException } from "#commons/app/index.js";
+import { AuthenticationError } from "#commons/app/errors.js";
 import { buildSessionConfig } from "#users/config/session-config.js";
 
 /**
  * Authentication plugin for Fastify
- * Adds authentication middleware and helpers for session-based auth
+ *
+ * This plugin adds middleware to verify user authentication based on session cookies.
+ * It also provides helpers for authenticated routes.
  */
-export default fp(async (fastify: FastifyInstance) => {
+const authPlugin: FastifyPluginAsync = async (fastify) => {
     if (!fastify.sessionService) {
         throw new Error("Session service not found. Make sure it is registered before the auth plugin.");
     }
@@ -18,64 +20,67 @@ export default fp(async (fastify: FastifyInstance) => {
         throw new Error("User service not found. Make sure it is registered before the auth plugin.");
     }
 
-    fastify.decorate("authenticate", async (request: FastifyRequest) => {
+    /**
+     * Authenticate middleware
+     *
+     * Verifies user session and adds user information to request
+     */
+    const authenticate = async (request: FastifyRequest) => {
         try {
-            // Get the session cookie
             const { cookieName } = buildSessionConfig();
             const sessionToken = request.cookies[cookieName];
 
             if (!sessionToken) {
-                throw new UnauthorizedException("No session found");
+                throw new AuthenticationError("No session found");
             }
 
-            // Verify session token
             const session = await fastify.sessionService.getSessionByToken(sessionToken);
             if (!session) {
-                throw new UnauthorizedException("Invalid or expired session");
+                throw new AuthenticationError("Invalid or expired session");
             }
 
-            // Get user information
             const user = await fastify.userService.findById(session.userId);
             if (!user) {
-                throw new UnauthorizedException("User not found");
+                throw new AuthenticationError("User not found");
             }
 
-            // Update last used timestamp
             await fastify.sessionService.updateLastUsed(session.id);
 
-            // Add user and session to request
             request.user = {
                 id: user.id,
                 email: user.email,
                 name: user.name,
                 surname: user.surname,
+                username: user.username,
                 sessionId: session.id,
             };
         }
         // eslint-disable-next-line unused-imports/no-unused-vars
         catch (error) {
-            throw new UnauthorizedException("Authentication failed");
+            throw new AuthenticationError("Authentication failed");
         }
-    });
+    };
 
-    // Register authentication hook for routes that require authentication
+    fastify.decorate("authenticate", authenticate);
+
     fastify.addHook("onRoute", (routeOptions) => {
         if (routeOptions.config?.auth === true) {
-            // Get the original preHandler hook
             const preHandler = routeOptions.preHandler;
 
-            // Create an array of preHandlers if it doesn't exist
             const handlers = preHandler
                 ? Array.isArray(preHandler)
                     ? [...preHandler]
                     : [preHandler]
                 : [];
 
-            // Add authentication preHandler
-            handlers.unshift(fastify.authenticate);
+            handlers.unshift(authenticate);
 
-            // Update the route's preHandler
             routeOptions.preHandler = handlers;
         }
     });
+};
+
+export default fp(authPlugin, {
+    name: "auth",
+    dependencies: ["user-services"],
 });

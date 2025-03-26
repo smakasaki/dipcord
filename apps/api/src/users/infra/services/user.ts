@@ -1,10 +1,6 @@
-import type { FastifyInstance } from "fastify";
+import type { FastifyPluginAsync } from "fastify";
 
 import fp from "fastify-plugin";
-
-import type { IPasswordResetTokenRepository } from "#users/app/password-reset-repo.js";
-import type { ISessionRepository } from "#users/app/session-repo.js";
-import type { IUserRepository } from "#users/app/user-repo.js";
 
 import { PasswordService } from "#users/app/password-service.js";
 import { SessionService } from "#users/app/session-service.js";
@@ -16,12 +12,19 @@ import { SessionDao } from "../dao/session-dao.js";
 import { UserDao } from "../dao/user-dao.js";
 
 /**
- * Register user services
+ * User services plugin for Fastify
+ *
+ * This plugin registers all user-related services (user, session, authentication)
+ * and makes them available throughout the application.
  */
-export default fp(async (fastify: FastifyInstance) => {
-    const userRepository: IUserRepository = new UserDao(fastify.db);
-    const sessionRepository: ISessionRepository = new SessionDao(fastify.db);
-    const passwordResetTokenRepository: IPasswordResetTokenRepository = new PasswordResetTokenDao(fastify.db);
+const userServicesPlugin: FastifyPluginAsync = async (fastify) => {
+    if (!fastify.db) {
+        throw new Error("Database not found. Make sure it is registered before the user services plugin.");
+    }
+
+    const userRepository = new UserDao(fastify.db);
+    const sessionRepository = new SessionDao(fastify.db);
+    const passwordResetTokenRepository = new PasswordResetTokenDao(fastify.db);
 
     const passwordService = new PasswordService();
     const sessionConfig = buildSessionConfig();
@@ -38,4 +41,9 @@ export default fp(async (fastify: FastifyInstance) => {
     fastify.decorate("userService", userService);
 
     fastify.log.info("User and session services registered");
+};
+
+export default fp(userServicesPlugin, {
+    name: "user-services",
+    dependencies: ["database"],
 });

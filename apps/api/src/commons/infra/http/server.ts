@@ -72,6 +72,9 @@ export default async function buildServer(app: FastifyInstance) {
     // Register user module
     app.register(import("#users/index.js"));
 
+    // Register channel module
+    app.register(import("#channels/index.js"));
+
     // Set global error handler
     app.setErrorHandler(errorHandler);
 

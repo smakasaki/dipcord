@@ -44,7 +44,7 @@ describe("admin auth API", () => {
             const response = await regularUser.get("/v1/admin/auth/profile");
 
             // Assert response - should be unauthorized
-            expect(response.statusCode).toBe(401);
+            expect(response.statusCode).toBe(403);
         });
     });
 

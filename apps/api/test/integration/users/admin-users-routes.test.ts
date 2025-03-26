@@ -78,7 +78,7 @@ describe("admin users API", () => {
             const response = await regularUser.get("/v1/admin/users");
 
             // Should return 401 Unauthorized
-            expect(response.statusCode).toBe(401);
+            expect(response.statusCode).toBe(403);
         });
     });
 

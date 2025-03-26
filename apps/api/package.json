@@ -31,6 +31,7 @@
         "@fastify/autoload": "^6.2.0",
         "@fastify/cookie": "^11.0.2",
         "@fastify/cors": "^11.0.0",
+        "@fastify/error": "^4.1.0",
         "@fastify/oauth2": "^8.1.2",
         "@fastify/sensible": "^6.0.3",
         "@fastify/swagger": "^9.4.2",
@@ -42,6 +43,7 @@
         "fastify": "^5.2.1",
         "fastify-plugin": "^5.0.1",
         "pg": "^8.13.3",
+        "redis": "^4.7.0",
         "uuid": "^11.1.0"
     },
     "devDependencies": {
@@ -49,6 +51,7 @@
         "@dipcord/schema": "workspace:*",
         "@dipcord/typescript-config": "workspace:*",
         "@testcontainers/postgresql": "^10.20.0",
+        "@testcontainers/redis": "^10.22.0",
         "@types/node": "^22.0.0",
         "@types/pg": "^8.11.11",
         "@vitest/coverage-v8": "3.0.8",
