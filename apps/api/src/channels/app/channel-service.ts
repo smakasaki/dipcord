@@ -109,10 +109,8 @@ export class ChannelService {
     }
 
     async deleteChannel(id: string, userId: string): Promise<Channel> {
-        // Check if channel exists
         await this.getChannelById(id);
 
-        // Check if user has permission to delete the channel
         const membership = await this.channelMemberRepository.findByChannelAndUser(id, userId);
         if (!membership) {
             throw new PermissionDeniedError("You are not a member of this channel");
@@ -122,7 +120,26 @@ export class ChannelService {
             throw new PermissionDeniedError("Only the channel owner can delete the channel");
         }
 
-        // Delete the channel
+        const allMembers = await this.channelMemberRepository.findByChannelId(
+            id,
+            { offset: 0, limit: 1000 },
+            [["id", "asc"]],
+        );
+
+        for (const member of allMembers.data) {
+            await this.channelMemberRepository.delete(member.id);
+        }
+
+        const allInvites = await this.channelInviteRepository.findByChannelId(
+            id,
+            { offset: 0, limit: 1000 },
+            [["id", "asc"]],
+        );
+
+        for (const invite of allInvites.data) {
+            await this.channelInviteRepository.delete(invite.id);
+        }
+
         const deletedChannel = await this.channelRepository.delete(id);
         if (!deletedChannel) {
             throw new Error("Failed to delete channel");
@@ -244,6 +261,27 @@ export class ChannelService {
             && updatingUserMembership.role !== "owner"
             && updatingUserMembership.role !== "moderator") {
             throw new PermissionDeniedError("You don't have permission to change member permissions");
+        }
+
+        // If changing role to moderator, update permissions to match
+        if (data.role === "moderator") {
+            data.permissions = {
+                manage_members: true,
+                manage_messages: true,
+                manage_tasks: true,
+                manage_calls: true,
+                manage_polls: true,
+            };
+        }
+        else if (data.role === "user") {
+        // If changing role to regular user, update permissions to match
+            data.permissions = {
+                manage_members: false,
+                manage_messages: false,
+                manage_tasks: false,
+                manage_calls: false,
+                manage_polls: false,
+            };
         }
 
         // Update the member

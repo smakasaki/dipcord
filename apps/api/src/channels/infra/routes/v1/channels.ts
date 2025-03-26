@@ -20,8 +20,8 @@ import {
     UpdateMemberRoleRequest,
 } from "@dipcord/schema";
 import { Type } from "@sinclair/typebox";
-import { mapChannelInviteToResponse, mapChannelMemberToResponse, mapChannelToResponse } from "#channels/infra/utils/channel-mapper.js";
 
+import { mapChannelInviteToResponse, mapChannelMemberToResponse, mapChannelToResponse } from "#channels/infra/utils/channel-mapper.js";
 import { decodeSort, validateSortFields } from "#commons/infra/http/utils/decode-sort.js";
 
 /**

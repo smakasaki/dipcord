@@ -1,8 +1,7 @@
-import type { IChannelMemberRepository } from "#channels/app/channel-member-repo.js";
-import type { ChannelMember, CreateChannelMemberData, UpdateChannelMemberData } from "#channels/app/models.js";
-
 import { and, count, eq } from "drizzle-orm";
 
+import type { IChannelMemberRepository } from "#channels/app/channel-member-repo.js";
+import type { ChannelMember, CreateChannelMemberData, UpdateChannelMemberData } from "#channels/app/models.js";
 import type { PaginatedResult, Pagination, SortBy } from "#commons/app/index.js";
 import type { Database } from "#commons/infra/plugins/database.js";
 
@@ -45,7 +44,32 @@ export class ChannelMemberDao implements IChannelMemberRepository {
         if (!result[0])
             throw new Error("Channel member not created");
 
-        return this.mapToDomainMember(result[0]);
+        // Получаем данные пользователя
+        const userResult = await this.db
+            .select({
+                id: users.id,
+                name: users.name,
+                surname: users.surname,
+                username: users.username,
+            })
+            .from(users)
+            .where(eq(users.id, data.userId))
+            .limit(1);
+
+        const user = userResult[0];
+
+        if (!user)
+            throw new Error("User not found");
+
+        return {
+            ...this.mapToDomainMember(result[0]),
+            user: {
+                id: user.id,
+                name: user.name,
+                surname: user.surname,
+                username: user.username,
+            },
+        };
     }
 
     /**
@@ -60,6 +84,7 @@ export class ChannelMemberDao implements IChannelMemberRepository {
         pagination: Pagination,
         sortBy: SortBy<ChannelMember>,
     ): Promise<PaginatedResult<ChannelMember>> {
+        // First, get the count
         const countResult = await this.db
             .select({ value: count() })
             .from(channelMembers)
@@ -67,34 +92,46 @@ export class ChannelMemberDao implements IChannelMemberRepository {
 
         const total = countResult[0]?.value ?? 0;
 
-        const result = await this.db
-            .select({
-                member: channelMembers,
-                user: {
-                    id: users.id,
-                    name: users.name,
-                    surname: users.surname,
-                    username: users.username,
-                },
-            })
+        // Then, fetch the members with sorting on specific fields
+        // Convert the incoming sort fields to properly reference the member fields
+        const mappedSortBy = sortBy.map(([field, direction]) => {
+            // Only sort by fields that exist on channelMembers
+            return [field, direction] as [keyof ChannelMember, "asc" | "desc"];
+        });
+
+        // Get members with proper ordering
+        const members = await this.db
+            .select()
             .from(channelMembers)
-            .innerJoin(users, eq(channelMembers.userId, users.id))
             .where(eq(channelMembers.channelId, channelId))
             .limit(pagination.limit)
             .offset(pagination.offset)
-            .orderBy(...buildSortBy(sortBy, "member"));
+            .orderBy(...buildSortBy(mappedSortBy));
+
+        // Now fetch user details for each member
+        const result = await Promise.all(
+            members.map(async (member) => {
+                const user = await this.db
+                    .select({
+                        id: users.id,
+                        name: users.name,
+                        surname: users.surname,
+                        username: users.username,
+                    })
+                    .from(users)
+                    .where(eq(users.id, member.userId))
+                    .limit(1);
+
+                return {
+                    ...this.mapToDomainMember(member),
+                    user: user[0],
+                };
+            }),
+        );
 
         return {
             count: total,
-            data: result.map(({ member, user }) => ({
-                ...this.mapToDomainMember(member),
-                user: {
-                    id: user.id,
-                    name: user.name,
-                    surname: user.surname,
-                    username: user.username,
-                },
-            })),
+            data: result,
         };
     }
 

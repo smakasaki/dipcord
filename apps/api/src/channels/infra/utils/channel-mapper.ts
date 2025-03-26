@@ -24,14 +24,31 @@ export function mapChannelToResponse(channel: Channel): any {
  * @returns API channel member response format
  */
 export function mapChannelMemberToResponse(member: ChannelMember): any {
+    if (!member) {
+        return null;
+    }
+
     return {
         id: member.id,
         channelId: member.channelId,
         userId: member.userId,
         role: member.role,
-        permissions: member.permissions,
-        joinedAt: member.joinedAt.toISOString(),
-        user: member.user,
+        permissions: {
+            manage_members: member.permissions?.manage_members || false,
+            manage_messages: member.permissions?.manage_messages || false,
+            manage_tasks: member.permissions?.manage_tasks || false,
+            manage_calls: member.permissions?.manage_calls || false,
+            manage_polls: member.permissions?.manage_polls || false,
+        },
+        joinedAt: member.joinedAt ? member.joinedAt.toISOString() : new Date().toISOString(),
+        user: member.user
+            ? {
+                    id: member.user.id,
+                    name: member.user.name || "",
+                    surname: member.user.surname || "",
+                    username: member.user.username || "",
+                }
+            : undefined,
     };
 }
 
@@ -41,6 +58,10 @@ export function mapChannelMemberToResponse(member: ChannelMember): any {
  * @returns API channel invite response format
  */
 export function mapChannelInviteToResponse(invite: ChannelInvite): any {
+    if (!invite) {
+        return null;
+    }
+
     return {
         id: invite.id,
         channelId: invite.channelId,
@@ -48,9 +69,9 @@ export function mapChannelInviteToResponse(invite: ChannelInvite): any {
         inviteCode: invite.inviteCode,
         email: invite.email,
         expiresAt: invite.expiresAt ? invite.expiresAt.toISOString() : null,
-        isUsed: invite.isUsed,
-        usedByUserId: invite.usedByUserId,
-        createdAt: invite.createdAt.toISOString(),
+        isUsed: invite.isUsed || false,
+        usedByUserId: invite.usedByUserId || null,
+        createdAt: invite.createdAt ? invite.createdAt.toISOString() : new Date().toISOString(),
     };
 }
 
