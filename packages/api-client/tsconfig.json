@@ -1,0 +1,10 @@
+{
+    "extends": "@dipcord/typescript-config/base.json",
+    "compilerOptions": {
+      "composite": true,
+      "outDir": "./dist",
+      "rootDir": "./"
+    },
+    "include": ["src/**/*", "scripts/**/*"],
+    "references": []
+  }
