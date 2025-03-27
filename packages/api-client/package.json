@@ -1,0 +1,25 @@
+{
+  "name": "@dipcord/api-client",
+  "version": "0.1.0",
+  "private": true,
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "scripts": {
+    "generate": "tsx scripts/generate.ts"
+  },
+  "dependencies": {
+    "@tanstack/react-query": "^5.69.0",
+    "openapi-fetch": "^0.13.5",
+    "openapi-react-query": "^0.3.1"
+  },
+  "devDependencies": {
+    "@dipcord/typescript-config": "workspace:^",
+    "@types/node": "^22.0.0",
+    "openapi-typescript": "^7.6.1",
+    "tsx": "^4.19.3",
+    "typescript": "^5.8.2"
+  },
+  "peerDependencies": {
+    "react": "^18.0.0 || ^19.0.0"
+  }
+}
