@@ -8,4 +8,13 @@ export default defineConfig({
         TanStackRouterVite({ target: "react", autoCodeSplitting: true }),
         react(),
     ],
+    server: {
+        proxy: {
+            "/api/v1": {
+                target: "http://127.0.0.1:3001",
+                changeOrigin: true,
+                rewrite: path => path.replace(/^\/api/, ""),
+            },
+        },
+    },
 });
