@@ -16,5 +16,3 @@ export function PublicLayout() {
         </Box>
     );
 }
-
-export default PublicLayout;

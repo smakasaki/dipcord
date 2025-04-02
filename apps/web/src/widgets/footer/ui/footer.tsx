@@ -1,5 +1,6 @@
 import { Anchor, Container, Group, Text } from "@mantine/core";
 import { Link } from "@tanstack/react-router";
+import { DipcordLogo } from "#/shared/ui/logos";
 
 import classes from "./footer.module.css";
 
@@ -26,9 +27,12 @@ export function Footer() {
     return (
         <div className={classes.footer}>
             <Container className={classes.inner}>
-                <Link to="/" className={classes.logo}>
-                    Dipcord
-                </Link>
+                <Group gap="xs">
+                    <DipcordLogo size={24} style={{ color: "#F06418" }} />
+                    <Link to="/" className={classes.logo}>
+                        Dipcord
+                    </Link>
+                </Group>
                 <Group className={classes.links}>{items}</Group>
             </Container>
             <Container>

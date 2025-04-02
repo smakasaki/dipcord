@@ -1,6 +1,7 @@
 import { Box, Burger, Button, Divider, Drawer, Group, ScrollArea } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { Link, useLocation } from "@tanstack/react-router";
+import { DipcordLogo } from "#/shared/ui";
 
 import classes from "./header.module.css";
 
@@ -32,9 +33,12 @@ export function Header() {
             <header className={classes.header}>
                 <Group justify="space-between" h="100%">
                     {/* Logo */}
-                    <Link to="/" className={classes.logo}>
-                        Dipcord
-                    </Link>
+                    <Group gap="xs">
+                        <DipcordLogo size={32} style={{ color: "#F06418" }} />
+                        <Link to="/" className={classes.logo}>
+                            Dipcord
+                        </Link>
+                    </Group>
 
                     {/* Desktop Navigation */}
                     <Group h="100%" gap={0} className={classes.desktopItems}>
