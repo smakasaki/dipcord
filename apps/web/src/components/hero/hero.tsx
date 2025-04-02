@@ -8,7 +8,12 @@ export function Hero() {
         <div className={classes.wrapper}>
             <Container size={900} className={classes.inner}>
                 <h1 className={classes.title}>
-                    <Text component="span" variant="gradient" gradient={{ from: "blue", to: "cyan" }} inherit>
+                    <Text
+                        component="span"
+                        variant="gradient"
+                        gradient={{ from: "brand-orange.6", to: "brand-orange.4" }}
+                        inherit
+                    >
                         Объединяйте команду
                     </Text>
                     {" "}
@@ -25,7 +30,7 @@ export function Hero() {
                         size="xl"
                         className={classes.control}
                         variant="gradient"
-                        gradient={{ from: "blue", to: "cyan" }}
+                        gradient={{ from: "brand-orange.6", to: "brand-orange.4" }}
                         component={Link}
                         to="/register"
                     >
