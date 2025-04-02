@@ -1,16 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { FeaturesCards } from "#/features/landing/ui";
-import { Hero } from "#/features/landing/ui/hero";
+import { HomePage } from "#/pages/home";
 
 export const Route = createFileRoute("/_public/")({
-    component: Index,
+    component: HomePage,
 });
-
-function Index() {
-    return (
-        <>
-            <Hero />
-            <FeaturesCards />
-        </>
-    );
-}
