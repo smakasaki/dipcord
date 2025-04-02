@@ -1,7 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-
-import { FeaturesCards } from "../components/features-cards";
-import { Hero } from "../components/hero";
+import { FeaturesCards } from "#/features/landing/ui";
+import { Hero } from "#/features/landing/ui/hero";
 
 export const Route = createFileRoute("/_public/")({
     component: Index,

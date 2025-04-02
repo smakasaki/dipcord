@@ -1,8 +1,7 @@
 import { Box } from "@mantine/core";
 import { Outlet } from "@tanstack/react-router";
-
-import { Footer } from "../components/footer";
-import { Header } from "../components/header";
+import { Footer } from "#/widgets/footer/ui";
+import { Header } from "#/widgets/header/ui";
 
 export function PublicLayout() {
     return (
