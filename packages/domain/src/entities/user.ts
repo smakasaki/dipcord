@@ -1,4 +1,4 @@
-export interface User {
+export type User = {
     id: string;
     name: string;
     surname: string;
@@ -7,6 +7,6 @@ export interface User {
     roles: UserRole[];
     createdAt: Date;
     updatedAt: Date;
-}
+};
 
 export type UserRole = "user" | "admin";
