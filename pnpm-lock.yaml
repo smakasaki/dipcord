@@ -255,6 +255,15 @@ importers:
         specifier: ^5.8.2
         version: 5.8.2
 
+  packages/domain:
+    devDependencies:
+      '@dipcord/typescript-config':
+        specifier: workspace:*
+        version: link:../typescript-config
+      typescript:
+        specifier: ^5.8.2
+        version: 5.8.2
+
   packages/eslint-config:
     devDependencies:
       '@antfu/eslint-config':

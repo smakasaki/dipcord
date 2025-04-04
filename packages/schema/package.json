@@ -4,16 +4,33 @@
     "version": "0.0.0",
     "private": true,
     "exports": {
-        ".": "./index.ts",
-        "./user": "./user/index.ts",
-        "./admin": "./admin/index.ts",
-        "./auth": "./auth/index.ts",
-        "./common": "./common/index.ts",
-        "./channel": "./channel/index.ts"
+        ".": {
+            "types": "./dist/index.d.ts",
+            "default": "./dist/index.js"
+        },
+        "./auth": {
+            "types": "./dist/auth/index.d.ts",
+            "default": "./dist/auth/index.js"
+        },
+        "./common": {
+            "types": "./dist/common/index.d.ts",
+            "default": "./dist/common/index.js"
+        },
+        "./user": {
+            "types": "./dist/user/index.d.ts",
+            "default": "./dist/user/index.js"
+        },
+        "./channel": {
+            "types": "./dist/channel/index.d.ts",
+            "default": "./dist/channel/index.js"
+        }
     },
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
     "scripts": {
         "lint": "eslint .",
-        "check-types": "tsc --noEmit"
+        "check-types": "tsc --noEmit",
+        "build": "tsc"
     },
     "dependencies": {
         "@sinclair/typebox": "^0.34.29"
