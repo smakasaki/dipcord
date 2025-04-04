@@ -66,6 +66,9 @@ importers:
         specifier: ^11.1.0
         version: 11.1.0
     devDependencies:
+      '@dipcord/domain':
+        specifier: workspace:*
+        version: link:../../packages/domain
       '@dipcord/eslint-config':
         specifier: workspace:*
         version: link:../../packages/eslint-config
@@ -157,6 +160,9 @@ importers:
         specifier: ^5.0.3
         version: 5.0.3(@types/react@19.0.10)(react@19.0.0)(use-sync-external-store@1.4.0(react@19.0.0))
     devDependencies:
+      '@dipcord/domain':
+        specifier: workspace:*
+        version: link:../../packages/domain
       '@dipcord/eslint-config':
         specifier: workspace:*
         version: link:../../packages/eslint-config

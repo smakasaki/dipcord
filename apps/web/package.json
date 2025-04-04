@@ -23,6 +23,7 @@
         "zustand": "^5.0.3"
     },
     "devDependencies": {
+        "@dipcord/domain": "workspace:*",
         "@dipcord/eslint-config": "workspace:*",
         "@dipcord/schema": "workspace:*",
         "@dipcord/typescript-config": "workspace:*",
