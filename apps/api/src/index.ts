@@ -24,7 +24,7 @@ async function start() {
         },
         ajv: {
             customOptions: {
-                removeAdditional: "all",
+                removeAdditional: false,
                 coerceTypes: true,
                 useDefaults: true,
                 allErrors: true,

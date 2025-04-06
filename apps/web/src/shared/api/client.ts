@@ -5,7 +5,7 @@ import type { paths } from "./types/api";
 
 const fetchClient = createFetchClient<paths>({
     baseUrl: "/api",
-    credentials: "include",
+    credentials: "include"
 });
 
 export const $api = createClient(fetchClient);
