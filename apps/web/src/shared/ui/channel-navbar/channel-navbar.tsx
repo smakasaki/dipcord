@@ -45,6 +45,14 @@ const channelsMockdata: Channel[] = [
     { id: "8", name: "Finance", color: "indigo" },
     { id: "9", name: "Research", color: "cyan" },
     { id: "10", name: "Operations", color: "grape" },
+    { id: "11", name: "Test", color: "green" },
+    { id: "12", name: "Test2", color: "grape" },
+    { id: "13", name: "Test3", color: "cyan" },
+    { id: "15", name: "Test5", color: "teal" },
+    { id: "14", name: "Test4", color: "indigo" },
+    { id: "16", name: "Test6", color: "pink" },
+    { id: "17", name: "Test7", color: "yellow" },
+
 ];
 
 // Default channel id
@@ -91,7 +99,7 @@ export function ChannelNavbar() {
             transitionProps={{ duration: 0 }}
             key={channel.id}
         >
-            <div style={{ display: "flex", justifyContent: "center", width: "100%" }}>
+            <div style={{ display: "flex", justifyContent: "center", width: "100%", marginBottom: 8 }}>
                 <UnstyledButton
                     onClick={() => {
                         setActiveChannel(channel.id);
@@ -233,9 +241,16 @@ export function ChannelNavbar() {
                         </Avatar>
                     </div>
 
-                    {/* Scrollable channel list */}
-                    <ScrollArea className={classes.channelScroll}>
-                        {channelLinks}
+                    {/* Updated ScrollArea with proper configuration */}
+                    <ScrollArea
+                        className={classes.channelScroll}
+                        scrollbarSize={5}
+                        type="hover"
+                        offsetScrollbars
+                    >
+                        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginLeft: 8 }}>
+                            {channelLinks}
+                        </div>
                     </ScrollArea>
 
                     {/* System links at the bottom */}
