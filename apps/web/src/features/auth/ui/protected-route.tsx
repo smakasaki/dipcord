@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 
-import { useAuthCheck, useIsAuthenticated, useIsLoading } from "../model";
+import { useAuthCheck, useIsLoading } from "../model";
 
 type ProtectedRouteProps = {
     children: ReactNode;

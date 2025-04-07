@@ -7,7 +7,7 @@ import globals from "globals";
 export default createConfig({
     react: true,
 }, {
-    ignores: ["dist"],
+    ignores: ["dist", "node_modules", "src/shared/api/types/api.d.ts"],
     languageOptions: {
         ecmaVersion: 2020,
         globals: globals.browser,
