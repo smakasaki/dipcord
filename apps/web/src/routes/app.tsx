@@ -1,8 +1,7 @@
 import { AppShell, Burger } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { createFileRoute, Outlet } from "@tanstack/react-router";
-
-import { ChannelNavbar } from "../shared/ui";
+import { ChannelNavbar } from "#/features/channel-navigation";
 
 export const Route = createFileRoute("/app")({
     component: AppLayout,
@@ -19,7 +18,6 @@ function AppLayout() {
                 breakpoint: "sm",
                 collapsed: { mobile: !mobileOpened, desktop: false },
             }}
-            padding="md"
         >
             <AppShell.Header>
                 <div style={{ display: "flex", alignItems: "center", height: "100%", padding: "0 1rem" }}>

@@ -9,9 +9,9 @@ import {
     IconUserCircle,
 } from "@tabler/icons-react";
 import { useNavigate } from "@tanstack/react-router";
+import { DipcordLogo } from "#/shared/ui/logos";
 import { useState } from "react";
 
-import { DipcordLogo } from "../logos";
 import classes from "./channel-navbar.module.css";
 
 type Channel = {

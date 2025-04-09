@@ -1,7 +1,6 @@
-/* Updated styles for channel-navbar.module.css */
 .navbar {
     background-color: light-dark(var(--mantine-color-white), var(--mantine-color-dark-6));
-    height: 100%; /* Change to 100% to fill available space */
+    height: 100%;
     width: 300px;
     display: flex;
     flex-direction: column;
@@ -11,8 +10,8 @@
 .wrapper {
     display: flex;
     flex: 1;
-    height: 100%; /* Ensure wrapper takes full height */
-    overflow: hidden; /* Prevent overflow */
+    height: 100%;
+    overflow: hidden;
 }
 
 .aside {
@@ -20,7 +19,7 @@
     background-color: var(--mantine-color-body);
     display: flex;
     flex-direction: column;
-    height: 100%; /* Make aside take full height */
+    height: 100%;
     border-right: 1px solid light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-7));
     position: relative;
 }
@@ -28,8 +27,8 @@
 .main {
     flex: 1;
     background-color: light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-6));
-    height: 100%; /* Make main take full height */
-    overflow-y: auto; /* Add scroll to main area if needed */
+    height: 100%;
+    overflow-y: auto;
 }
 
 .mainLink {
@@ -74,8 +73,8 @@
     height: 60px;
     padding-top: var(--mantine-spacing-md);
     border-bottom: 1px solid light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-7));
-    margin-bottom: 0; /* Remove bottom margin */
-    flex-shrink: 0; /* Prevent logo from shrinking */
+    margin-bottom: 0;
+    flex-shrink: 0;
 }
 
 .link {
@@ -113,12 +112,11 @@
 
 .channelScroll {
     flex: 1;
-    overflow-y: auto; /* Enable vertical scrolling */
+    overflow-y: auto;
     width: 100%;
     padding: var(--mantine-spacing-xs) 0;
-    /* Add these styles to fix scrolling behavior */
-    display: block; /* Change from flex to block */
-    max-height: calc(100% - 150px); /* Reserve space for logo and system links */
+    display: block;
+    max-height: calc(100% - 150px);
 }
 
 .systemLinks {

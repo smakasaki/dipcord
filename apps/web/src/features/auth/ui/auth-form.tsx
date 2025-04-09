@@ -17,7 +17,6 @@ import {
 } from "@mantine/core";
 import { IconAlertCircle } from "@tabler/icons-react";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { GoogleButton, MicrosoftButton } from "#/shared/ui/auth-buttons";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 
@@ -25,6 +24,8 @@ import type { LoginFormType, RegisterFormType } from "../model";
 
 import { loginCheck, registerCheck, useAuthError, useIsAuthenticated, useLoginMutation, useRegisterMutation, validatePasswordConfirmation } from "../model";
 import classes from "./auth-form.module.css";
+import { GoogleButton } from "./google-button";
+import { MicrosoftButton } from "./microsoft-button";
 
 type AuthFormProps = {
     type: "login" | "register";

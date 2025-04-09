@@ -1,4 +1,4 @@
-import { ChannelNavbar } from "../../../shared/ui";
+import { ChannelNavbar } from "#/features/channel-navigation";
 
 export function ChannelSidebar() {
     return <ChannelNavbar />;

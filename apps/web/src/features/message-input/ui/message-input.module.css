@@ -1,0 +1,81 @@
+.container {
+    padding: 0;
+    background-color: light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-7));
+    border-top: 1px solid light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
+    margin-top: auto;
+    width: 100%;
+    padding-bottom: 10px;
+}
+
+.inputWrapper {
+    display: flex;
+    align-items: center;
+    padding: 16px 16px 10px 0;
+}
+
+.input {
+    flex: 1;
+    border-radius: 8px;
+}
+
+.input input {
+    background-color: light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-5));
+    border-color: light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-3));
+    padding: 12px;
+    color: light-dark(var(--mantine-color-black), var(--mantine-color-white));
+}
+
+.input input::placeholder {
+    color: light-dark(var(--mantine-color-gray-6), var(--mantine-color-gray-5));
+}
+
+.inputAction {
+    margin-right: 10px;
+    margin-left: 16px;
+}
+
+.extraActions {
+    margin-left: 10px;
+}
+
+.replyPreview {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 16px 8px 0;
+    background-color: light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-6));
+    border-bottom: 1px solid light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
+}
+
+.replyPreview > div:first-child {
+    padding-left: 16px;
+}
+
+.replyName {
+    color: #f06418;
+    font-weight: 500;
+}
+
+.replyContent {
+    color: light-dark(var(--mantine-color-gray-7), var(--mantine-color-gray-5));
+    max-width: 300px;
+}
+
+.attachmentPreview {
+    padding: 8px 16px 8px 0;
+    border-bottom: 1px solid light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
+}
+
+.attachmentPreview > div {
+    padding-left: 16px;
+}
+
+.attachmentItem {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background-color: light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-5));
+    padding: 4px 8px;
+    border-radius: 4px;
+    max-width: 200px;
+}

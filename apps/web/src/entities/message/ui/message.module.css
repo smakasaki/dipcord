@@ -1,0 +1,115 @@
+.message {
+    padding: 4px 16px;
+    margin: 2px 0;
+    background-color: transparent;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+}
+
+.message:hover {
+    background-color: light-dark(var(--mantine-color-gray-1), rgba(79, 84, 92, 0.16));
+}
+
+.messageContainer {
+    display: flex;
+    position: relative;
+}
+
+.avatar {
+    margin-right: 16px;
+    margin-top: 2px;
+}
+
+.messageContent {
+    flex: 1;
+    min-width: 0;
+}
+
+.messageHeader {
+    margin-bottom: 4px;
+    align-items: center;
+}
+
+.timestamp {
+    font-size: 0.7rem;
+    color: light-dark(var(--mantine-color-gray-6), var(--mantine-color-gray-6));
+}
+
+.edited {
+    margin-left: 4px;
+    font-size: 0.7rem;
+    color: light-dark(var(--mantine-color-gray-6), var(--mantine-color-gray-6));
+}
+
+.messageText {
+    word-break: break-word;
+    white-space: pre-wrap;
+    color: light-dark(var(--mantine-color-black), var(--mantine-color-white));
+}
+
+.replyContainer {
+    background-color: light-dark(var(--mantine-color-gray-1), rgba(64, 68, 75, 0.3));
+    padding: 8px;
+    margin-bottom: 8px;
+    border-radius: 4px;
+    border-left: 2px solid #f06418;
+}
+
+.replyUsername {
+    color: #f06418;
+    font-weight: 500;
+}
+
+.attachments {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.attachment {
+    max-width: 100%;
+}
+
+.attachmentImage {
+    max-width: 400px;
+    max-height: 300px;
+    border-radius: 4px;
+}
+
+.fileAttachment {
+    background-color: light-dark(var(--mantine-color-gray-2), rgba(64, 68, 75, 0.6));
+    padding: 8px 12px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+}
+
+.reactions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 8px;
+}
+
+.reaction {
+    cursor: pointer;
+    background-color: light-dark(var(--mantine-color-gray-2), rgba(64, 68, 75, 0.4));
+    transition: background-color 0.2s;
+}
+
+.reaction:hover {
+    background-color: light-dark(var(--mantine-color-gray-3), rgba(64, 68, 75, 0.8));
+}
+
+.messageActions {
+    position: absolute;
+    right: 0;
+    top: -10px;
+    background-color: light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-7));
+    border-radius: 4px;
+    padding: 4px;
+    display: flex;
+    gap: 4px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}

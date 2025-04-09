@@ -16,6 +16,7 @@ import { Route as PublicImport } from './routes/_public'
 import { Route as R404Import } from './routes/$404'
 import { Route as AppIndexImport } from './routes/app.index'
 import { Route as PublicIndexImport } from './routes/_public.index'
+import { Route as ChannelChannelIdImport } from './routes/channel/$channelId'
 import { Route as AppSettingsImport } from './routes/app.settings'
 import { Route as AppProfileImport } from './routes/app.profile'
 import { Route as AppChannelIdImport } from './routes/app.$channelId'
@@ -56,6 +57,12 @@ const PublicIndexRoute = PublicIndexImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => PublicRoute,
+} as any)
+
+const ChannelChannelIdRoute = ChannelChannelIdImport.update({
+  id: '/channel/$channelId',
+  path: '/channel/$channelId',
+  getParentRoute: () => rootRoute,
 } as any)
 
 const AppSettingsRoute = AppSettingsImport.update({
@@ -185,6 +192,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppSettingsImport
       parentRoute: typeof AppImport
     }
+    '/channel/$channelId': {
+      id: '/channel/$channelId'
+      path: '/channel/$channelId'
+      fullPath: '/channel/$channelId'
+      preLoaderRoute: typeof ChannelChannelIdImport
+      parentRoute: typeof rootRoute
+    }
     '/_public/': {
       id: '/_public/'
       path: '/'
@@ -293,6 +307,7 @@ export interface FileRoutesByFullPath {
   '/app/$channelId': typeof AppChannelIdRouteWithChildren
   '/app/profile': typeof AppProfileRoute
   '/app/settings': typeof AppSettingsRoute
+  '/channel/$channelId': typeof ChannelChannelIdRoute
   '/': typeof PublicIndexRoute
   '/app/': typeof AppIndexRoute
   '/app/$channelId/calls': typeof AppChannelIdCallsRoute
@@ -309,6 +324,7 @@ export interface FileRoutesByTo {
   '/app/$channelId': typeof AppChannelIdRouteWithChildren
   '/app/profile': typeof AppProfileRoute
   '/app/settings': typeof AppSettingsRoute
+  '/channel/$channelId': typeof ChannelChannelIdRoute
   '/': typeof PublicIndexRoute
   '/app': typeof AppIndexRoute
   '/app/$channelId/calls': typeof AppChannelIdCallsRoute
@@ -328,6 +344,7 @@ export interface FileRoutesById {
   '/app/$channelId': typeof AppChannelIdRouteWithChildren
   '/app/profile': typeof AppProfileRoute
   '/app/settings': typeof AppSettingsRoute
+  '/channel/$channelId': typeof ChannelChannelIdRoute
   '/_public/': typeof PublicIndexRoute
   '/app/': typeof AppIndexRoute
   '/app/$channelId/calls': typeof AppChannelIdCallsRoute
@@ -348,6 +365,7 @@ export interface FileRouteTypes {
     | '/app/$channelId'
     | '/app/profile'
     | '/app/settings'
+    | '/channel/$channelId'
     | '/'
     | '/app/'
     | '/app/$channelId/calls'
@@ -363,6 +381,7 @@ export interface FileRouteTypes {
     | '/app/$channelId'
     | '/app/profile'
     | '/app/settings'
+    | '/channel/$channelId'
     | '/'
     | '/app'
     | '/app/$channelId/calls'
@@ -380,6 +399,7 @@ export interface FileRouteTypes {
     | '/app/$channelId'
     | '/app/profile'
     | '/app/settings'
+    | '/channel/$channelId'
     | '/_public/'
     | '/app/'
     | '/app/$channelId/calls'
@@ -393,12 +413,14 @@ export interface RootRouteChildren {
   R404Route: typeof R404Route
   PublicRoute: typeof PublicRouteWithChildren
   AppRoute: typeof AppRouteWithChildren
+  ChannelChannelIdRoute: typeof ChannelChannelIdRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
   R404Route: R404Route,
   PublicRoute: PublicRouteWithChildren,
   AppRoute: AppRouteWithChildren,
+  ChannelChannelIdRoute: ChannelChannelIdRoute,
 }
 
 export const routeTree = rootRoute
@@ -413,7 +435,8 @@ export const routeTree = rootRoute
       "children": [
         "/$404",
         "/_public",
-        "/app"
+        "/app",
+        "/channel/$channelId"
       ]
     },
     "/$404": {
@@ -466,6 +489,9 @@ export const routeTree = rootRoute
     "/app/settings": {
       "filePath": "app.settings.tsx",
       "parent": "/app"
+    },
+    "/channel/$channelId": {
+      "filePath": "channel/$channelId.tsx"
     },
     "/_public/": {
       "filePath": "_public.index.tsx",
