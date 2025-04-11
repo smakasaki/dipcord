@@ -1,8 +1,7 @@
-import type { IChannelRepository } from "#channels/app/channel-repo.js";
-import type { Channel, CreateChannelData, UpdateChannelData } from "#channels/app/models.js";
-
 import { count, eq } from "drizzle-orm";
 
+import type { IChannelRepository } from "#channels/app/channel-repo.js";
+import type { Channel, CreateChannelData, UpdateChannelData } from "#channels/app/models.js";
 import type { PaginatedResult, Pagination, SortBy } from "#commons/app/index.js";
 import type { Database } from "#commons/infra/plugins/database.js";
 
