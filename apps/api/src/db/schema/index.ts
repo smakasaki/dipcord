@@ -92,15 +92,19 @@ export const messages = pgTable("messages", {
     id: uuid("id").primaryKey().defaultRandom(),
     channelId: uuid("channel_id").notNull().references(() => channels.id),
     userId: uuid("user_id").notNull().references(() => users.id),
-    parentMessageId: uuid("parent_message_id"),
     content: text("content"),
-    isEdited: boolean("is_edited").notNull().default(false),
-    isDeleted: boolean("is_deleted").notNull().default(false),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
+    isEdited: boolean("is_edited").notNull().default(false),
+    parentMessageId: uuid("parent_message_id"), // nullable for replies
+    isDeleted: boolean("is_deleted").notNull().default(false),
 }, table => [
     index("message_channel_created_at_idx").on(table.channelId, table.createdAt),
     index("message_parent_message_idx").on(table.parentMessageId),
+
+    index("message_user_created_at_idx").on(table.userId, table.createdAt),
+    index("message_created_at_id_idx").on(table.createdAt, table.id),
+
     foreignKey({
         columns: [table.parentMessageId],
         foreignColumns: [table.id],
@@ -113,19 +117,32 @@ export const messageAttachments = pgTable("message_attachments", {
     messageId: uuid("message_id").notNull().references(() => messages.id),
     fileName: text("file_name").notNull(),
     fileType: text("file_type").notNull(),
-    fileSize: integer("file_size").notNull(),
+    size: integer("size").notNull(), // Renamed from fileSize to size
     s3Location: text("s3_location").notNull(),
     createdAt: timestamp("created_at").notNull().defaultNow(),
-});
+}, table => [
+    index("message_attachment_message_id_idx").on(table.messageId),
+]);
 
 export const messageMentions = pgTable("message_mentions", {
     id: uuid("id").primaryKey().defaultRandom(),
     messageId: uuid("message_id").notNull().references(() => messages.id),
-    userId: uuid("user_id").notNull().references(() => users.id),
+    mentionedUserId: uuid("mentioned_user_id").notNull().references(() => users.id), // Renamed from userId
     createdAt: timestamp("created_at").notNull().defaultNow(),
 }, table => [
-    uniqueIndex("message_mention_message_user_idx").on(table.messageId, table.userId),
-    index("message_mention_user_created_at_idx").on(table.userId, table.createdAt),
+    uniqueIndex("message_mention_message_user_idx").on(table.messageId, table.mentionedUserId),
+    index("message_mention_user_created_at_idx").on(table.mentionedUserId, table.createdAt),
+]);
+
+export const messageReactions = pgTable("message_reactions", {
+    id: uuid("id").primaryKey().defaultRandom(),
+    messageId: uuid("message_id").notNull().references(() => messages.id),
+    userId: uuid("user_id").notNull().references(() => users.id),
+    emoji: text("emoji").notNull(),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+}, table => [
+    uniqueIndex("message_reaction_message_user_idx").on(table.messageId, table.userId),
+    index("message_reaction_message_id_idx").on(table.messageId),
 ]);
 
 export const tasks = pgTable("tasks", {
