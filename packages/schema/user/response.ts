@@ -1,23 +1,19 @@
 // packages/schemas/user/response.ts
-import { Type } from "@sinclair/typebox";
+import { z } from "zod";
 
 import { ID, PaginationResult, StandardErrorResponses } from "../common/index.js";
 import { PublicUserBase, UserBase, UserRoleEnum } from "./types.js";
 
-export const UserResponse = Type.Intersect([
-    ID,
-    UserBase,
-    Type.Object({
-        roles: Type.Array(UserRoleEnum),
-        createdAt: Type.String({ format: "date-time" }),
-        updatedAt: Type.String({ format: "date-time" }),
-    }),
-]);
+export const UserResponse = ID.extend({
+    ...UserBase.shape,
+    roles: z.array(UserRoleEnum),
+    createdAt: z.string().datetime(),
+    updatedAt: z.string().datetime(),
+});
 
-export const PublicUserProfileResponse = Type.Intersect([
-    ID,
-    PublicUserBase,
-]);
+export const PublicUserProfileResponse = ID.extend({
+    ...PublicUserBase.shape,
+});
 
 export const PaginatedUsersResponse = PaginationResult(UserResponse);
 

@@ -1,34 +1,28 @@
-import { Type } from "@sinclair/typebox";
+import { z } from "zod";
 
 import { UUID } from "../common/index.js";
 import { MessageAttachmentBase, MessageBase, MessageReactionBase, MessageSortEnum } from "./types.js";
 
-export const SendMessageSchema = Type.Intersect([
-    MessageBase,
-    Type.Object({
-        attachments: Type.Optional(Type.Array(MessageAttachmentBase)),
-    }),
-]);
-
-export const UpdateMessageSchema = Type.Object({
-    messageId: UUID,
-    content: Type.String({ minLength: 1, maxLength: 4000 }),
+export const SendMessageSchema = MessageBase.extend({
+    attachments: z.array(MessageAttachmentBase).optional(),
 });
 
-export const DeleteMessageSchema = Type.Object({
+export const UpdateMessageSchema = z.object({
+    messageId: UUID,
+    content: z.string().min(1).max(4000),
+});
+
+export const DeleteMessageSchema = z.object({
     messageId: UUID,
 });
 
-export const GetChannelMessagesSchema = Type.Object({
+export const GetChannelMessagesSchema = z.object({
     channelId: UUID,
-    limit: Type.Optional(Type.Number({ minimum: 1, maximum: 100, default: 50 })),
-    cursor: Type.Optional(Type.String()),
-    sort: Type.Optional(MessageSortEnum),
-    parentMessageId: Type.Optional(UUID),
-    includeDeleted: Type.Optional(Type.Boolean({ default: false })),
+    limit: z.number().min(1).max(100).default(50).optional(),
+    cursor: z.string().optional(),
+    sort: MessageSortEnum.optional(),
+    parentMessageId: UUID.optional(),
+    includeDeleted: z.boolean().default(false).optional(),
 });
 
-export const ToggleReactionSchema = Type.Intersect([
-    MessageReactionBase,
-    Type.Object({}),
-]);
+export const ToggleReactionSchema = MessageReactionBase.extend({});

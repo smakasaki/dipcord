@@ -1,22 +1,18 @@
-import { Type } from "@sinclair/typebox";
+import { z } from "zod";
 
 import { UUID } from "../common/index.js";
 import { SessionBase } from "../user/types.js";
 
-export const Session = Type.Intersect([
-    Type.Object({ id: UUID }),
-    SessionBase,
-]);
+export const Session = SessionBase.extend({
+    id: UUID,
+});
 
-export const SessionWithUser = Type.Intersect([
-    Session,
-    Type.Object({
-        userId: UUID,
-        user: Type.Object({
-            id: UUID,
-            name: Type.String(),
-            surname: Type.String(),
-            username: Type.String(),
-        }),
+export const SessionWithUser = Session.extend({
+    userId: UUID,
+    user: z.object({
+        id: UUID,
+        name: z.string(),
+        surname: z.string(),
+        username: z.string(),
     }),
-]);
+});

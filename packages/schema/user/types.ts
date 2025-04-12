@@ -1,28 +1,25 @@
-import { Type } from "@sinclair/typebox";
+import { z } from "zod";
 
-export const UserRoleEnum = Type.Union([
-    Type.Literal("user"),
-    Type.Literal("admin"),
-]);
+export const UserRoleEnum = z.enum(["user", "admin"]);
 
-export const UserBase = Type.Object({
-    name: Type.String(),
-    surname: Type.String(),
-    email: Type.String({ format: "email" }),
-    username: Type.String({ minLength: 3, maxLength: 20, pattern: "^[a-zA-Z0-9_]+$" }),
+export const UserBase = z.object({
+    name: z.string(),
+    surname: z.string(),
+    email: z.string().email(),
+    username: z.string().min(3).max(20).regex(/^\w+$/),
 });
 
-export const PublicUserBase = Type.Object({
-    name: Type.String(),
-    surname: Type.String(),
-    username: Type.String(),
+export const PublicUserBase = z.object({
+    name: z.string(),
+    surname: z.string(),
+    username: z.string(),
 });
 
-export const SessionBase = Type.Object({
-    token: Type.String(),
-    ipAddress: Type.Optional(Type.String()),
-    userAgent: Type.Optional(Type.String()),
-    expiresAt: Type.String({ format: "date-time" }),
-    lastUsedAt: Type.String({ format: "date-time" }),
-    createdAt: Type.String({ format: "date-time" }),
+export const SessionBase = z.object({
+    token: z.string(),
+    ipAddress: z.string().optional(),
+    userAgent: z.string().optional(),
+    expiresAt: z.string().datetime(),
+    lastUsedAt: z.string().datetime(),
+    createdAt: z.string().datetime(),
 });

@@ -1,46 +1,46 @@
-import { Type } from "@sinclair/typebox";
+import { z } from "zod";
 
 import { UUID } from "../common/index.js";
 import { PaginationResult } from "../common/pagination.js";
 
-export const MessageAttachmentResponseSchema = Type.Object({
+export const MessageAttachmentResponseSchema = z.object({
     id: UUID,
     messageId: UUID,
-    fileName: Type.String(),
-    fileType: Type.String(),
-    size: Type.Number(),
-    s3Location: Type.String(),
-    createdAt: Type.String({ format: "date-time" }),
+    fileName: z.string(),
+    fileType: z.string(),
+    size: z.number(),
+    s3Location: z.string(),
+    createdAt: z.string().datetime(),
 });
 
-export const MessageReactionResponseSchema = Type.Object({
+export const MessageReactionResponseSchema = z.object({
     id: UUID,
     messageId: UUID,
     userId: UUID,
-    emoji: Type.String(),
-    createdAt: Type.String({ format: "date-time" }),
+    emoji: z.string(),
+    createdAt: z.string().datetime(),
 });
 
-export const MessageMentionResponseSchema = Type.Object({
+export const MessageMentionResponseSchema = z.object({
     id: UUID,
     messageId: UUID,
     mentionedUserId: UUID,
-    createdAt: Type.String({ format: "date-time" }),
+    createdAt: z.string().datetime(),
 });
 
-export const MessageResponseSchema = Type.Object({
+export const MessageResponseSchema = z.object({
     id: UUID,
     channelId: UUID,
     userId: UUID,
-    content: Type.Union([Type.String(), Type.Null()]),
-    createdAt: Type.String({ format: "date-time" }),
-    updatedAt: Type.String({ format: "date-time" }),
-    isEdited: Type.Boolean(),
-    parentMessageId: Type.Union([UUID, Type.Null()]),
-    isDeleted: Type.Boolean(),
-    attachments: Type.Optional(Type.Array(MessageAttachmentResponseSchema)),
-    reactions: Type.Optional(Type.Array(MessageReactionResponseSchema)),
-    mentions: Type.Optional(Type.Array(MessageMentionResponseSchema)),
+    content: z.string().nullable(),
+    createdAt: z.string().datetime(),
+    updatedAt: z.string().datetime(),
+    isEdited: z.boolean(),
+    parentMessageId: UUID.nullable(),
+    isDeleted: z.boolean(),
+    attachments: z.array(MessageAttachmentResponseSchema).optional(),
+    reactions: z.array(MessageReactionResponseSchema).optional(),
+    mentions: z.array(MessageMentionResponseSchema).optional(),
 });
 
 export const MessagesResponseSchema = PaginationResult(MessageResponseSchema);

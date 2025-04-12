@@ -1,26 +1,26 @@
-import { Type } from "@sinclair/typebox";
+import { z } from "zod";
 
 import { UUID } from "../common/index.js";
 
-export const LoginRequest = Type.Object({
-    email: Type.String({ format: "email" }),
-    password: Type.String(),
+export const LoginRequest = z.object({
+    email: z.string().email(),
+    password: z.string(),
 });
 
-export const SessionIdParam = Type.Object({
+export const SessionIdParam = z.object({
     sessionId: UUID,
 });
 
-export const RequestPasswordResetRequest = Type.Object({
-    email: Type.String({ format: "email" }),
+export const RequestPasswordResetRequest = z.object({
+    email: z.string().email(),
 });
 
-export const ResetPasswordRequest = Type.Object({
-    token: Type.String(),
-    password: Type.String({ minLength: 8 }),
+export const ResetPasswordRequest = z.object({
+    token: z.string(),
+    password: z.string().min(8),
 });
 
-export const ChangePasswordRequest = Type.Object({
-    currentPassword: Type.String(),
-    newPassword: Type.String({ minLength: 8 }),
+export const ChangePasswordRequest = z.object({
+    currentPassword: z.string(),
+    newPassword: z.string().min(8),
 });

@@ -1,35 +1,35 @@
-import { Type } from "@sinclair/typebox";
+import { z } from "zod";
 
 import { UUID } from "../common/index.js";
 
-export const ChannelRoleEnum = Type.Union([
-    Type.Literal("owner"),
-    Type.Literal("moderator"),
-    Type.Literal("user"),
+export const ChannelRoleEnum = z.enum([
+    "owner",
+    "moderator",
+    "user",
 ]);
 
-export const ChannelPermissionsSchema = Type.Object({
-    manage_members: Type.Boolean(),
-    manage_messages: Type.Boolean(),
-    manage_tasks: Type.Boolean(),
-    manage_calls: Type.Boolean(),
-    manage_polls: Type.Boolean(),
+export const ChannelPermissionsSchema = z.object({
+    manage_members: z.boolean(),
+    manage_messages: z.boolean(),
+    manage_tasks: z.boolean(),
+    manage_calls: z.boolean(),
+    manage_polls: z.boolean(),
 });
 
-export const ChannelBase = Type.Object({
-    name: Type.String({ minLength: 1, maxLength: 50 }),
-    description: Type.Optional(Type.String({ maxLength: 500 })),
-    maxParticipants: Type.Optional(Type.Number({ minimum: 1, maximum: 50, default: 50 })),
-    accessSettings: Type.Optional(Type.Record(Type.String(), Type.Any())),
+export const ChannelBase = z.object({
+    name: z.string().min(1).max(50),
+    description: z.string().max(500).optional(),
+    maxParticipants: z.number().min(1).max(50).default(50).optional(),
+    accessSettings: z.record(z.string(), z.any()).optional(),
 });
 
-export const MemberBase = Type.Object({
+export const MemberBase = z.object({
     userId: UUID,
     role: ChannelRoleEnum,
-    permissions: Type.Optional(ChannelPermissionsSchema),
+    permissions: ChannelPermissionsSchema.optional(),
 });
 
-export const InviteBase = Type.Object({
-    email: Type.Optional(Type.String({ format: "email" })),
-    expiresAt: Type.Optional(Type.String({ format: "date-time" })),
+export const InviteBase = z.object({
+    email: z.string().email().optional(),
+    expiresAt: z.string().datetime().optional(),
 });

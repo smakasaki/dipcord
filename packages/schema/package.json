@@ -33,7 +33,7 @@
         "build": "tsc"
     },
     "dependencies": {
-        "@sinclair/typebox": "^0.34.29"
+        "zod": "^3.24.2"
     },
     "devDependencies": {
         "@dipcord/eslint-config": "workspace:*",
