@@ -1,4 +1,5 @@
-import type { FastifyPluginAsyncTypebox } from "@fastify/type-provider-typebox";
+import type { FastifyReply } from "fastify";
+import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
 
 import {
     NoContent,
@@ -11,11 +12,54 @@ import {
 
 import { mapUserToResponse } from "#users/infra/utils/user-mapper.js";
 
+// Define schemas for routes for better type inference
+const getMeSchema = {
+    tags: ["Users"],
+    description: "Get current user profile",
+    response: {
+        200: UserResponse,
+        ...UserErrorResponses,
+    },
+    security: [{ cookieAuth: [] }],
+};
+
+const updateMeSchema = {
+    tags: ["Users"],
+    description: "Update current user profile",
+    body: UpdateUserProfileRequest,
+    response: {
+        200: UserResponse,
+        ...UserErrorResponses,
+    },
+    security: [{ cookieAuth: [] }],
+};
+
+const deleteMeSchema = {
+    tags: ["Users"],
+    description: "Delete current user account",
+    response: {
+        204: NoContent,
+        ...UserErrorResponses,
+    },
+    security: [{ cookieAuth: [] }],
+};
+
+const getUserSchema = {
+    tags: ["Users"],
+    description: "Get user public profile by ID",
+    params: UserIdParam,
+    response: {
+        200: PublicUserProfileResponse,
+        ...UserErrorResponses,
+    },
+    security: [{ cookieAuth: [] }],
+};
+
 /**
  * User management routes for regular users
  * Admin functionality is moved to admin routes
  */
-const routes: FastifyPluginAsyncTypebox = async function (fastify): Promise<void> {
+const routes: FastifyPluginAsyncZod = async function (fastify): Promise<void> {
     /**
      * Get current user
      */
@@ -23,15 +67,7 @@ const routes: FastifyPluginAsyncTypebox = async function (fastify): Promise<void
         config: {
             auth: true,
         },
-        schema: {
-            tags: ["Users"],
-            description: "Get current user profile",
-            response: {
-                200: UserResponse,
-                ...UserErrorResponses,
-            },
-            security: [{ cookieAuth: [] }],
-        },
+        schema: getMeSchema,
     }, async (request) => {
         const user = await fastify.userService.findById(request.user!.id);
         return mapUserToResponse(user);
@@ -44,16 +80,7 @@ const routes: FastifyPluginAsyncTypebox = async function (fastify): Promise<void
         config: {
             auth: true,
         },
-        schema: {
-            tags: ["Users"],
-            description: "Update current user profile",
-            body: UpdateUserProfileRequest,
-            response: {
-                200: UserResponse,
-                ...UserErrorResponses,
-            },
-            security: [{ cookieAuth: [] }],
-        },
+        schema: updateMeSchema,
     }, async (request) => {
         const user = await fastify.userService.update(request.user!.id, request.body);
         return mapUserToResponse(user);
@@ -66,16 +93,8 @@ const routes: FastifyPluginAsyncTypebox = async function (fastify): Promise<void
         config: {
             auth: true,
         },
-        schema: {
-            tags: ["Users"],
-            description: "Delete current user account",
-            response: {
-                204: NoContent,
-                ...UserErrorResponses,
-            },
-            security: [{ cookieAuth: [] }],
-        },
-    }, async (request, reply) => {
+        schema: deleteMeSchema,
+    }, async (request, reply: FastifyReply) => {
         // Delete the user's account
         await fastify.userService.delete(request.user!.id);
 
@@ -97,16 +116,7 @@ const routes: FastifyPluginAsyncTypebox = async function (fastify): Promise<void
         config: {
             auth: true, // Requires authentication but not admin privileges
         },
-        schema: {
-            tags: ["Users"],
-            description: "Get user public profile by ID",
-            params: UserIdParam,
-            response: {
-                200: PublicUserProfileResponse,
-                ...UserErrorResponses,
-            },
-            security: [{ cookieAuth: [] }],
-        },
+        schema: getUserSchema,
     }, async (request) => {
         const user = await fastify.userService.findById(request.params.userId);
 

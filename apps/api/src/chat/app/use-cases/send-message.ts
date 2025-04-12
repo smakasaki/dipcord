@@ -1,5 +1,4 @@
 import { SendMessageSchema } from "@dipcord/schema";
-import { TypeCompiler } from "@sinclair/typebox/compiler";
 
 import { BadRequestError } from "#commons/app/errors.js";
 
@@ -10,9 +9,9 @@ export function createSendMessageUseCase(messageRepository: MessageRepository, a
     return {
         async execute(params: SendMessageParams): Promise<SendMessageResult> {
         // 1. Validate parameters
-            const validator = TypeCompiler.Compile(SendMessageSchema);
-            if (!validator.Check(params)) {
-                const errors = [...validator.Errors(params)];
+            const validationResult = SendMessageSchema.safeParse(params);
+            if (!validationResult.success) {
+                const errors = validationResult.error.format();
                 throw new BadRequestError(`Invalid parameters: ${JSON.stringify(errors)}`);
             }
 

@@ -1,26 +1,23 @@
 /* eslint-disable node/no-process-env */
-import { Type } from "@sinclair/typebox";
-import { TypeCompiler } from "@sinclair/typebox/compiler";
+
+import { z } from "zod";
 
 import type { SessionConfig } from "#users/app/session-service.js";
 
 // Session configuration schema
-const SessionConfigSchema = Type.Object({
-    cookieName: Type.String(),
-    expirationTime: Type.Number(),
-    path: Type.String(),
-    domain: Type.Optional(Type.String()),
-    secure: Type.Boolean(),
-    httpOnly: Type.Boolean(),
-    sameSite: Type.Union([
-        Type.Literal("strict"),
-        Type.Literal("lax"),
-        Type.Literal("none"),
+const SessionConfigSchema = z.object({
+    cookieName: z.string(),
+    expirationTime: z.number(),
+    path: z.string(),
+    domain: z.string().optional(),
+    secure: z.boolean(),
+    httpOnly: z.boolean(),
+    sameSite: z.union([
+        z.literal("strict"),
+        z.literal("lax"),
+        z.literal("none"),
     ]),
 });
-
-// Compiler for validation
-const SchemaCompiler = TypeCompiler.Compile(SessionConfigSchema);
 
 /**
  * Build session configuration from environment variables
@@ -40,12 +37,13 @@ export function buildSessionConfig(): SessionConfig {
     };
 
     // Validate configuration
-    if (SchemaCompiler.Check(config)) {
+    const validationResult = SessionConfigSchema.safeParse(config);
+    if (validationResult.success) {
         return config;
     }
 
     // Throw error if configuration is invalid
     throw new Error(
-        `Invalid session configuration: ${JSON.stringify([...SchemaCompiler.Errors(config)])}`,
+        `Invalid session configuration: ${JSON.stringify(validationResult.error.format())}`,
     );
 }

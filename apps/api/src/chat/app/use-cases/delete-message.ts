@@ -1,5 +1,4 @@
 import { DeleteMessageSchema } from "@dipcord/schema";
-import { TypeCompiler } from "@sinclair/typebox/compiler";
 
 import { BadRequestError, ForbiddenError, NotFoundError } from "#commons/app/errors.js";
 
@@ -10,9 +9,9 @@ export function createDeleteMessageUseCase(messageRepository: MessageRepository,
     return {
         async execute(params: DeleteMessageParams) {
         // 1. Validate parameters
-            const validator = TypeCompiler.Compile(DeleteMessageSchema);
-            if (!validator.Check(params)) {
-                const errors = [...validator.Errors(params)];
+            const validationResult = DeleteMessageSchema.safeParse(params);
+            if (!validationResult.success) {
+                const errors = validationResult.error.format();
                 throw new BadRequestError(`Invalid parameters: ${JSON.stringify(errors)}`);
             }
 

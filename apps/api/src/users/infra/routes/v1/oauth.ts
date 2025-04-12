@@ -1,7 +1,7 @@
-import type { FastifyPluginAsyncTypebox } from "@fastify/type-provider-typebox";
+import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
 
 import { UserErrorResponses, UserResponse } from "@dipcord/schema";
-import { Type } from "@sinclair/typebox";
+import { z } from "zod";
 
 import { UnauthorizedException } from "#commons/app/exceptions.js";
 import { mapUserToResponse } from "#users/infra/utils/user-mapper.js";
@@ -9,7 +9,7 @@ import { mapUserToResponse } from "#users/infra/utils/user-mapper.js";
 /**
  * OAuth routes for handling Google and Microsoft authentication
  */
-const routes: FastifyPluginAsyncTypebox = async function (fastify): Promise<void> {
+const routes: FastifyPluginAsyncZod = async function (fastify): Promise<void> {
     /**
      * Google OAuth callback handler
      */
@@ -153,10 +153,10 @@ const routes: FastifyPluginAsyncTypebox = async function (fastify): Promise<void
             tags: ["Auth", "OAuth"],
             description: "List available OAuth providers",
             response: {
-                200: Type.Object({
-                    providers: Type.Array(Type.Object({
-                        name: Type.String(),
-                        loginUrl: Type.String(),
+                200: z.object({
+                    providers: z.array(z.object({
+                        name: z.string(),
+                        loginUrl: z.string(),
                     })),
                 }),
             },

@@ -1,4 +1,4 @@
-import type { FastifyPluginAsyncTypebox } from "@fastify/type-provider-typebox";
+import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
 
 import {
     CreateUserRequest,
@@ -13,7 +13,7 @@ import { mapUserToResponse } from "#users/infra/utils/user-mapper.js";
 /**
  * Authentication routes
  */
-const routes: FastifyPluginAsyncTypebox = async function (fastify): Promise<void> {
+const routes: FastifyPluginAsyncZod = async function (fastify): Promise<void> {
     /**
      * Register a new user
      */

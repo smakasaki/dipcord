@@ -1,5 +1,4 @@
 import { GetChannelMessagesSchema } from "@dipcord/schema";
-import { TypeCompiler } from "@sinclair/typebox/compiler";
 
 import { BadRequestError, ForbiddenError } from "#commons/app/errors.js";
 
@@ -10,9 +9,9 @@ export function createGetChannelMessagesUseCase(messageRepository: MessageReposi
     return {
         async execute(params: GetChannelMessagesParams): Promise<GetChannelMessagesResult> {
         // 1. Validate parameters
-            const validator = TypeCompiler.Compile(GetChannelMessagesSchema);
-            if (!validator.Check(params)) {
-                const errors = [...validator.Errors(params)];
+            const validationResult = GetChannelMessagesSchema.safeParse(params);
+            if (!validationResult.success) {
+                const errors = validationResult.error.format();
                 throw new BadRequestError(`Invalid parameters: ${JSON.stringify(errors)}`);
             }
 

@@ -1,4 +1,4 @@
-import type { FastifyPluginAsyncTypebox } from "@fastify/type-provider-typebox";
+import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
 
 import {
     AdminErrorResponses,
@@ -7,11 +7,11 @@ import {
     NoContent,
     PaginatedUsersResponse,
     Pagination,
+    SortQuery,
     UserIdParam,
     UserResponse,
     UserRoleUpdatedSchema,
 } from "@dipcord/schema";
-import { Type } from "@fastify/type-provider-typebox";
 
 import type { User } from "#users/app/models.js";
 
@@ -21,7 +21,7 @@ import { mapPaginatedUsersToResponse, mapUserToResponse } from "#users/infra/uti
 /**
  * Admin routes for user management
  */
-const routes: FastifyPluginAsyncTypebox = async function (fastify): Promise<void> {
+const routes: FastifyPluginAsyncZod = async function (fastify): Promise<void> {
     // Define valid sort fields for User entity
     const validUserSortFields: Array<keyof User & string> = [
         "id",
@@ -42,18 +42,7 @@ const routes: FastifyPluginAsyncTypebox = async function (fastify): Promise<void
         schema: {
             tags: ["Admin", "Users"],
             description: "Get all users with pagination",
-            querystring: Type.Intersect([
-                Pagination,
-                Type.Object({
-                    sort: Type.Optional(Type.Array(
-                        Type.Union([
-                            Type.String(),
-                            Type.String({ pattern: "^.+\\.(asc|desc)$" }),
-                        ]),
-                        { default: ["createdAt.desc"] },
-                    )),
-                }),
-            ]),
+            querystring: Pagination.merge(SortQuery),
             response: {
                 200: PaginatedUsersResponse,
                 ...AdminErrorResponses,

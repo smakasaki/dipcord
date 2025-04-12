@@ -1,6 +1,5 @@
 /* eslint-disable ts/consistent-type-definitions */
 import type { OAuth2Namespace } from "@fastify/oauth2";
-import type { TypeBoxTypeProvider } from "@fastify/type-provider-typebox";
 import type {
     ContextConfigDefault,
     FastifyBaseLogger,
@@ -12,7 +11,9 @@ import type {
     RawRequestDefaultExpression,
     RawServerDefault,
     RouteGenericInterface,
+    RouteOptions,
 } from "fastify";
+import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import type { RedisClientType } from "redis";
 
 import type { ChannelService } from "#channels/app/channel-service.js";
@@ -43,44 +44,16 @@ declare module "fastify" {
             [key: string]: unknown;
         };
     }
-    interface RouteOptions {
-        config?: {
-            auth?: boolean;
-            adminAuth?: boolean;
-        };
+    interface FastifyContextConfig {
+        auth?: boolean;
+        adminAuth?: boolean;
     }
-
 }
 
-export type FastifyTypeBox = FastifyInstance<
+export type FastifyZod = FastifyInstance<
     RawServerDefault,
     RawRequestDefaultExpression,
     RawReplyDefaultExpression,
     FastifyBaseLogger,
-    TypeBoxTypeProvider
->;
-
-/*
-How to use request & reply args:
-const CreateProductHandler = (
-    req: FastifyRequestTypeBox<typeof CreateProductSchema>,
-    reply: FastifyReplyTypeBox<typeof CreateProductSchema>,
-)
-*/
-export type FastifyRequestTypeBox<TSchema extends FastifySchema> = FastifyRequest<
-    RouteGenericInterface,
-    RawServerDefault,
-    RawRequestDefaultExpression,
-    TSchema,
-    TypeBoxTypeProvider
->;
-
-export type FastifyReplyTypeBox<TSchema extends FastifySchema> = FastifyReply<
-    RouteGenericInterface,
-    RawServerDefault,
-    RawRequestDefaultExpression,
-    RawReplyDefaultExpression,
-    ContextConfigDefault,
-    TSchema,
-    TypeBoxTypeProvider
+    ZodTypeProvider
 >;
