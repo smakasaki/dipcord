@@ -34,15 +34,14 @@ export async function createTestUser(
     }
 
     // Create a unique email to avoid conflicts
-    const uniqueId = randomUUID().slice(0, 12);
-    const timestamp = Date.now();
+    const uniqueId = randomUUID().slice(0, 8);
 
     // Create test user with defaults or overrides
     const user = await app.userService.create({
         name: userData.name ?? "Test",
         surname: userData.surname ?? "User",
-        email: userData.email ?? `test.user.${uniqueId}.${timestamp}@example.com`,
-        username: userData.username ?? `testuser_${uniqueId}`,
+        email: userData.email ?? `test.user.${uniqueId}@example.com`,
+        username: userData.username ?? `test${uniqueId}`,
         password: userData.password ?? "Password123!",
     });
 

@@ -2,18 +2,7 @@ import { randomUUID } from "node:crypto";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { createDeleteMessageUseCase } from "#chat/app/use-cases/delete-message.js";
-import { BadRequestError, ForbiddenError, NotFoundError } from "#commons/app/errors.js";
-
-vi.mock("@sinclair/typebox/compiler", () => {
-    return {
-        TypeCompiler: {
-            Compile: () => ({
-                Check: () => true,
-                Errors: () => [],
-            }),
-        },
-    };
-});
+import { ForbiddenError, NotFoundError } from "#commons/app/errors.js";
 
 // Mock dependencies
 const mockMessageRepository = {

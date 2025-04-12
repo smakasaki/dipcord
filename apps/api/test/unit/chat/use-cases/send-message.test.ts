@@ -4,17 +4,6 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createSendMessageUseCase } from "#chat/app/use-cases/send-message.js";
 import { BadRequestError } from "#commons/app/errors.js";
 
-vi.mock("@sinclair/typebox/compiler", () => {
-    return {
-        TypeCompiler: {
-            Compile: () => ({
-                Check: () => true,
-                Errors: () => [],
-            }),
-        },
-    };
-});
-
 // Mock dependencies
 const mockMessageRepository = {
     createMessage: vi.fn(),

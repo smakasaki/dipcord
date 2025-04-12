@@ -4,17 +4,6 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createGetChannelMessagesUseCase } from "#chat/app/use-cases/get-channel-messages.js";
 import { ForbiddenError } from "#commons/app/errors.js";
 
-vi.mock("@sinclair/typebox/compiler", () => {
-    return {
-        TypeCompiler: {
-            Compile: () => ({
-                Check: () => true,
-                Errors: () => [],
-            }),
-        },
-    };
-});
-
 // Mock dependencies
 const mockMessageRepository = {
     createMessage: vi.fn(),

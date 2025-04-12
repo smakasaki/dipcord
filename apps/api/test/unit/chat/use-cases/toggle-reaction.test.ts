@@ -4,17 +4,6 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createToggleReactionUseCase } from "#chat/app/use-cases/toggle-reaction.js";
 import { BadRequestError, ForbiddenError, NotFoundError } from "#commons/app/errors.js";
 
-vi.mock("@sinclair/typebox/compiler", () => {
-    return {
-        TypeCompiler: {
-            Compile: () => ({
-                Check: () => true,
-                Errors: () => [],
-            }),
-        },
-    };
-});
-
 // Mock dependencies
 const mockMessageRepository = {
     createMessage: vi.fn(),

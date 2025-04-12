@@ -2,14 +2,15 @@
  * Setup for complete API integration tests
  * Creates a full test server with all components registered
  */
-import type { TypeBoxTypeProvider } from "@fastify/type-provider-typebox";
 import type { FastifyInstance } from "fastify";
+import type { ZodTypeProvider } from "fastify-type-provider-zod";
 
 import cookie from "@fastify/cookie";
 import cors from "@fastify/cors";
 import sensible from "@fastify/sensible";
 import fastify from "fastify";
 import fp from "fastify-plugin";
+import { jsonSchemaTransform, serializerCompiler, validatorCompiler } from "fastify-type-provider-zod";
 import { afterAll, afterEach, beforeAll } from "vitest";
 
 import channelsRoutes from "#channels/infra/routes/v1/channels.js";
@@ -44,7 +45,11 @@ export async function createApiTestServer(): Promise<FastifyInstance> {
                     },
                 },
             },
-        }).withTypeProvider<TypeBoxTypeProvider>();
+        }).withTypeProvider<ZodTypeProvider>();
+
+        // Register schema validation
+        app.setValidatorCompiler(validatorCompiler);
+        app.setSerializerCompiler(serializerCompiler);
 
         // Set up core plugins
         await app.register(sensible);
