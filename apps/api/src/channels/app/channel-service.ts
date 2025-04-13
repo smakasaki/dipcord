@@ -37,6 +37,11 @@ export class ChannelService {
         private readonly activeUsersService: ActiveUsersService,
     ) {}
 
+    async isUserChannelMember(userId: string, channelId: string): Promise<boolean> {
+        const membership = await this.channelMemberRepository.findByChannelAndUser(channelId, userId);
+        return !!membership;
+    }
+
     async createChannel(data: CreateChannelData, creatorId: string): Promise<{
         channel: Channel;
         owner: ChannelMember;
@@ -72,6 +77,14 @@ export class ChannelService {
             throw new NotFoundError(`Channel with ID ${id} not found`);
         }
         return channel;
+    }
+
+    async getUserChannels(userId: string): Promise<Channel[]> {
+        const channelIds = await this.channelMemberRepository.getChannelsByUserId(userId);
+        const channels = await Promise.all(
+            channelIds.map(id => this.channelRepository.findById(id)),
+        );
+        return channels.filter((channel): channel is Channel => channel !== null);
     }
 
     async getAllChannels(

@@ -16,6 +16,7 @@ export type MessageRepository = {
 export type AttachmentRepository = {
     createAttachments: (attachments: Array<Omit<MessageAttachment, "id" | "createdAt">>) => Promise<MessageAttachment[]>;
     getAttachmentsByMessageId: (messageId: string) => Promise<MessageAttachment[]>;
+    getAttachmentById: (attachmentId: string) => Promise<MessageAttachment | null>;
 };
 
 export type ReactionRepository = {

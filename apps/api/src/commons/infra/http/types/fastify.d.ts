@@ -1,23 +1,20 @@
 /* eslint-disable ts/consistent-type-definitions */
 import type { OAuth2Namespace } from "@fastify/oauth2";
 import type {
-    ContextConfigDefault,
     FastifyBaseLogger,
     FastifyInstance,
-    FastifyReply,
-    FastifyRequest,
-    FastifySchema,
     RawReplyDefaultExpression,
     RawRequestDefaultExpression,
     RawServerDefault,
-    RouteGenericInterface,
-    RouteOptions,
 } from "fastify";
 import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import type { RedisClientType } from "redis";
 
+import type { ActiveUsersService } from "#channels/app/active-users-service.js";
 import type { ChannelService } from "#channels/app/channel-service.js";
+import type { ChatService } from "#chat/app/chat-service.js";
 import type { Database } from "#commons/infra/plugins/database.js";
+import type { ClientToServerEvents, InterServerEvents, ServerToClientEvents, SocketData } from "#commons/infra/ws/types.js";
 import type { SessionService } from "#users/app/session-service.js";
 import type { UserService } from "#users/app/user-service.js";
 
@@ -31,8 +28,14 @@ declare module "fastify" {
         userService: UserService;
         channelService: ChannelService;
         sessionService: SessionService;
+        activeUsersService: ActiveUsersService;
         googleOAuth2: OAuth2Namespace;
         microsoftOAuth2: OAuth2Namespace;
+        chatService: ChatService;
+
+        io: Server<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>;
+        broadcastToChannel: (channelId: string, event: string, ...args: any[]) => void;
+        broadcastToUser: (userId: string, event: string, ...args: any[]) => void;
     }
     interface FastifyRequest {
         user?: {

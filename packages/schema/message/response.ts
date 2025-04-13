@@ -44,3 +44,28 @@ export const MessageResponseSchema = z.object({
 });
 
 export const MessagesResponseSchema = PaginationResult(MessageResponseSchema);
+
+export const MessageWithDetailsResponseSchema = z.object({
+    message: MessageResponseSchema,
+    attachments: z.array(MessageAttachmentResponseSchema),
+    reactions: z.array(MessageReactionResponseSchema),
+});
+
+export const ToggleReactionResponseSchema = z.object({
+    action: z.enum(["add", "remove"]),
+    reaction: MessageReactionResponseSchema.nullable(),
+});
+
+export const FileUploadResponseSchema = z.object({
+    fileName: z.string(),
+    fileType: z.string(),
+    size: z.number(),
+    s3Location: z.string(),
+});
+
+export const FileDownloadResponseSchema = z.object({
+    downloadUrl: z.string(),
+    fileName: z.string(),
+    fileType: z.string(),
+    expiresIn: z.number(),
+});

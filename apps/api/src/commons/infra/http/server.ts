@@ -78,8 +78,13 @@ export default async function buildServer(app: FastifyInstance) {
     // Register user module
     app.register(import("#users/index.js"));
 
+    app.register(import("#commons/infra/plugins/websockets.js"));
+
     // Register channel module
     app.register(import("#channels/index.js"));
+
+    // Register chat module
+    app.register(import("#chat/index.js"));
 
     // Set global error handler
     app.setErrorHandler(errorHandler);

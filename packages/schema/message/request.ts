@@ -1,7 +1,11 @@
 import { z } from "zod";
 
 import { UUID } from "../common/index.js";
-import { MessageAttachmentBase, MessageBase, MessageReactionBase, MessageSortEnum } from "./types.js";
+import { MessageAttachmentBase, MessageBase, MessageSortEnum } from "./types.js";
+
+export const MessageIdParam = z.object({
+    messageId: UUID,
+});
 
 export const SendMessageSchema = MessageBase.extend({
     attachments: z.array(MessageAttachmentBase).optional(),
@@ -25,4 +29,20 @@ export const GetChannelMessagesSchema = z.object({
     includeDeleted: z.boolean().default(false).optional(),
 });
 
-export const ToggleReactionSchema = MessageReactionBase.extend({});
+export const ToggleReactionSchema = z.object({
+    messageId: UUID,
+    emoji: z.string().min(1).max(10),
+});
+
+export const GetMessageRepliesSchema = z.object({
+    messageId: UUID,
+    limit: z.number().min(1).max(100).default(50).optional(),
+    cursor: z.string().optional(),
+    sort: MessageSortEnum.optional(),
+    includeDeleted: z.boolean().default(false).optional(),
+});
+
+export const GetUserMentionsSchema = z.object({
+    limit: z.number().min(1).max(100).default(50).optional(),
+    cursor: z.string().optional(),
+});

@@ -60,6 +60,27 @@ export class AttachmentDao implements AttachmentRepository {
     }
 
     /**
+     * Get attachment by its ID
+     * @param attachmentId Attachment ID
+     * @returns The attachment or null if not found
+     */
+    async getAttachmentById(attachmentId: string): Promise<MessageAttachment | null> {
+        const result = await this.db
+            .select()
+            .from(messageAttachments)
+            .where(eq(messageAttachments.id, attachmentId))
+            .limit(1);
+
+        if (result.length === 0) {
+            return null;
+        }
+
+        // Because we limit to 1, we know it's a valid attachment record
+        // TypeScript doesn't always understand this, so we'll be explicit
+        return this.mapToDomainAttachment(result[0] as typeof messageAttachments.$inferSelect);
+    }
+
+    /**
      * Map database attachment entity to domain attachment entity
      * @param attachment Database attachment entity
      * @returns Domain attachment entity

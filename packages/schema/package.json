@@ -23,6 +23,10 @@
         "./channel": {
             "types": "./dist/channel/index.d.ts",
             "default": "./dist/channel/index.js"
+        },
+        "./websocket": {
+            "types": "./dist/websocket/index.d.ts",
+            "default": "./dist/websocket/index.js"
         }
     },
     "main": "./dist/index.js",
