@@ -8,23 +8,11 @@ import type { ChannelMemberRepository, MessageRepository, NotificationService } 
 export function createDeleteMessageUseCase(messageRepository: MessageRepository, channelMemberRepository: ChannelMemberRepository, notificationService: NotificationService): DeleteMessageUseCase {
     return {
         async execute(params: DeleteMessageParams) {
-        // 1. Validate parameters
-            const validationResult = DeleteMessageSchema.safeParse(params);
-            if (!validationResult.success) {
-                const errors = validationResult.error.format();
-                throw new BadRequestError(`Invalid parameters: ${JSON.stringify(errors)}`);
-            }
-
-            // 2. Get the message
             const message = await messageRepository.getMessage(params.messageId);
             if (!message) {
-                throw new NotFoundError("Message not found");
+                throw new NotFoundError(`Message with ID ${params.messageId} not found`);
             }
 
-            // 3. Check permissions
-            // - User is message author
-            // - User is channel owner
-            // - User is moderator with manage_messages permission
             let hasPermission = message.userId === params.userId;
 
             if (!hasPermission) {
@@ -46,10 +34,8 @@ export function createDeleteMessageUseCase(messageRepository: MessageRepository,
                 throw new ForbiddenError("You don't have permission to delete this message");
             }
 
-            // 4. Delete message
             const deletedMessage = await messageRepository.deleteMessage(params.messageId);
 
-            // 5. Notify about the deletion
             await notificationService.notifyMessageDeleted(deletedMessage);
 
             return deletedMessage;

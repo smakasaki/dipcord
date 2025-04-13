@@ -12,6 +12,7 @@ import { MentionDao } from "../dao/mention-dao.js";
 import { MessageDao } from "../dao/message-dao.js";
 import { ReactionDao } from "../dao/reaction-dao.js";
 import { WebSocketNotificationService } from "../services/notification-service.js";
+import { uploadToS3 } from "../services/s3-service.js";
 import { UserMentionExtractor } from "../utils/mention-extractor.js";
 
 /**
@@ -44,6 +45,7 @@ const chatServicePlugin: FastifyPluginAsync = async (fastify) => {
         mentionExtractor,
         channelMemberRepository,
         notificationService,
+        s3Service: { uploadToS3 },
     });
 
     // Register the chat service

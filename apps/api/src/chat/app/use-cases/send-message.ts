@@ -8,20 +8,11 @@ import type { AttachmentRepository, ChannelMemberRepository, MentionExtractor, M
 export function createSendMessageUseCase(messageRepository: MessageRepository, attachmentRepository: AttachmentRepository, mentionRepository: MentionRepository, mentionExtractor: MentionExtractor, channelMemberRepository: ChannelMemberRepository, notificationService: NotificationService): SendMessageUseCase {
     return {
         async execute(params: SendMessageParams): Promise<SendMessageResult> {
-        // 1. Validate parameters
-            const validationResult = SendMessageSchema.safeParse(params);
-            if (!validationResult.success) {
-                const errors = validationResult.error.format();
-                throw new BadRequestError(`Invalid parameters: ${JSON.stringify(errors)}`);
-            }
-
-            // 2. Check if user is a channel member
             const isMember = await channelMemberRepository.isUserChannelMember(params.userId, params.channelId);
             if (!isMember) {
                 throw new BadRequestError("User is not a member of this channel");
             }
 
-            // 3. Create message
             const message = await messageRepository.createMessage({
                 channelId: params.channelId,
                 userId: params.userId,
@@ -30,7 +21,6 @@ export function createSendMessageUseCase(messageRepository: MessageRepository, a
                 isDeleted: false,
             });
 
-            // 4. Process attachments if any
             let attachments: Array<any> = [];
             if (params.attachments && params.attachments.length > 0) {
                 attachments = await attachmentRepository.createAttachments(
@@ -41,7 +31,6 @@ export function createSendMessageUseCase(messageRepository: MessageRepository, a
                 );
             }
 
-            // 5. Process mentions if content exists
             if (params.content) {
                 const mentionedUserIds = mentionExtractor.extractMentions(params.content);
                 if (mentionedUserIds.length > 0) {
@@ -54,7 +43,6 @@ export function createSendMessageUseCase(messageRepository: MessageRepository, a
                 }
             }
 
-            // 6. Send notifications
             await notificationService.notifyMessageCreated(message, attachments);
 
             return {

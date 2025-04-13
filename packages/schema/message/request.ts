@@ -22,11 +22,11 @@ export const DeleteMessageSchema = z.object({
 
 export const GetChannelMessagesSchema = z.object({
     channelId: UUID,
-    limit: z.number().min(1).max(100).default(50).optional(),
+    limit: z.coerce.number().min(1).max(100).default(50).optional(),
     cursor: z.string().optional(),
     sort: MessageSortEnum.optional(),
     parentMessageId: UUID.optional(),
-    includeDeleted: z.boolean().default(false).optional(),
+    includeDeleted: z.coerce.boolean().default(false).optional(),
 });
 
 export const ToggleReactionSchema = z.object({
@@ -36,13 +36,13 @@ export const ToggleReactionSchema = z.object({
 
 export const GetMessageRepliesSchema = z.object({
     messageId: UUID,
-    limit: z.number().min(1).max(100).default(50).optional(),
+    limit: z.coerce.number().min(1).max(100).default(50).optional(),
     cursor: z.string().optional(),
     sort: MessageSortEnum.optional(),
-    includeDeleted: z.boolean().default(false).optional(),
+    includeDeleted: z.coerce.boolean().default(false).optional(),
 });
 
 export const GetUserMentionsSchema = z.object({
-    limit: z.number().min(1).max(100).default(50).optional(),
+    limit: z.coerce.number().min(1).max(100).default(50).optional(),
     cursor: z.string().optional(),
 });

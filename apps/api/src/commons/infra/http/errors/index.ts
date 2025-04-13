@@ -29,7 +29,7 @@ export const errorHandler: FastifyInstance["errorHandler"] = function (
     if (hasZodFastifySchemaValidationErrors(error)) {
         reply.log.warn({
             type: "schema_validation_error",
-            code: "VALIDATION_ERROR",
+            code: "FST_VALIDATION_ERROR",
             validation: error.validation,
             request: {
                 method: request.method,
@@ -38,13 +38,27 @@ export const errorHandler: FastifyInstance["errorHandler"] = function (
             },
         });
 
+        // Transform validation issues into a more user-friendly format
+        const friendlyIssues = error.validation.map((issue) => {
+            // Extract the field name from the path or instancePath
+            const pathParts = issue.instancePath?.split("/").filter(Boolean);
+            const field = pathParts?.length ? pathParts[pathParts.length - 1] : "";
+            // Get user-friendly message
+            const message = issue.message || `Invalid value for ${field}`;
+
+            return {
+                field,
+                message,
+            };
+        });
+
         return reply.status(400).send({
             statusCode: 400,
             error: "Bad Request",
-            message: "Validation error",
-            code: "VALIDATION_ERROR",
+            message: "Please check your input and try again",
+            code: "FST_VALIDATION_ERROR",
             details: {
-                issues: error.validation,
+                validationErrors: friendlyIssues,
                 method: request.method,
                 url: request.url,
             },
@@ -57,16 +71,16 @@ export const errorHandler: FastifyInstance["errorHandler"] = function (
             err: error,
             request: getRequestContext(request),
             issues: error.cause?.issues,
-            code: "SERIALIZATION_ERROR",
+            code: "FST_SERIALIZATION_ERROR",
             type: "response_serialization_error",
         });
 
         return reply.code(500).send({
             error: "Internal Server Error",
             message: "Response doesn't match the schema",
+            code: "FST_SERIALIZATION_ERROR",
             statusCode: 500,
             details: {
-                issues: error.cause.issues,
                 method: error.method,
                 url: error.url,
             },

@@ -1,3 +1,5 @@
+import { ForbiddenError, NotFoundError } from "#commons/app/errors.js";
+
 import type { AttachmentRepository, ChannelMemberRepository, MessageRepository, ReactionRepository } from "../ports/outgoing.js";
 
 export type GetMessageByIdParams = {
@@ -47,14 +49,14 @@ export function createGetMessageByIdUseCase(
             const message = await messageRepository.getMessage(messageId);
 
             if (!message) {
-                throw new Error("Message not found");
+                throw new NotFoundError(`Message with ID ${messageId} not found`);
             }
 
             // If userId is provided, verify the user has access to the channel
             if (userId) {
                 const isMember = await channelMemberRepository.isUserChannelMember(userId, message.channelId);
                 if (!isMember) {
-                    throw new Error("User does not have access to this message");
+                    throw new ForbiddenError("User does not have access to this message");
                 }
             }
 

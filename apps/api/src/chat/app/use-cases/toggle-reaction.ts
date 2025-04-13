@@ -1,5 +1,3 @@
-import { ToggleReactionSchema } from "@dipcord/schema";
-
 import { BadRequestError, ForbiddenError, NotFoundError } from "#commons/app/errors.js";
 
 import type { ToggleReactionParams, ToggleReactionResult, ToggleReactionUseCase } from "../ports/incoming.js";
@@ -8,31 +6,20 @@ import type { ChannelMemberRepository, MessageRepository, NotificationService, R
 export function createToggleReactionUseCase(messageRepository: MessageRepository, reactionRepository: ReactionRepository, channelMemberRepository: ChannelMemberRepository, notificationService: NotificationService): ToggleReactionUseCase {
     return {
         async execute(params: ToggleReactionParams): Promise<ToggleReactionResult> {
-        // 1. Validate parameters
-            const validationResult = ToggleReactionSchema.safeParse(params);
-            if (!validationResult.success) {
-                const errors = validationResult.error.format();
-                throw new BadRequestError(`Invalid parameters: ${JSON.stringify(errors)}`);
-            }
-
-            // 2. Get the message
             const message = await messageRepository.getMessage(params.messageId);
             if (!message) {
-                throw new NotFoundError("Message not found");
+                throw new NotFoundError(`Message with ID ${params.messageId} not found`);
             }
 
-            // 3. Check if user is a member of the channel
             const isMember = await channelMemberRepository.isUserChannelMember(params.userId, message.channelId);
             if (!isMember) {
                 throw new ForbiddenError("User is not a member of this channel");
             }
 
-            // 4. Check if message is deleted
             if (message.isDeleted) {
                 throw new BadRequestError("Cannot react to deleted message");
             }
 
-            // 5. Get existing reactions for this user on this message
             const existingReactions = await reactionRepository.getReactionsByMessageId(params.messageId);
             const existingUserReaction = existingReactions.find(
                 r => r.userId === params.userId && r.emoji === params.emoji,
@@ -40,9 +27,7 @@ export function createToggleReactionUseCase(messageRepository: MessageRepository
 
             let result: ToggleReactionResult;
 
-            // 6. Toggle reaction (add or remove)
             if (existingUserReaction) {
-            // Remove reaction
                 await reactionRepository.deleteReaction(params.messageId, params.userId, params.emoji);
                 result = {
                     action: "remove",
@@ -50,7 +35,6 @@ export function createToggleReactionUseCase(messageRepository: MessageRepository
                 };
             }
             else {
-            // Add reaction
                 const reaction = await reactionRepository.createReaction({
                     messageId: params.messageId,
                     userId: params.userId,
@@ -62,7 +46,6 @@ export function createToggleReactionUseCase(messageRepository: MessageRepository
                 };
             }
 
-            // 7. Send notification
             await notificationService.notifyReactionToggled(
                 result.reaction,
                 result.action,

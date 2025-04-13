@@ -8,20 +8,11 @@ import type { AttachmentRepository, ChannelMemberRepository, MessageRepository, 
 export function createGetChannelMessagesUseCase(messageRepository: MessageRepository, attachmentRepository: AttachmentRepository, reactionRepository: ReactionRepository, channelMemberRepository: ChannelMemberRepository): GetChannelMessagesUseCase {
     return {
         async execute(params: GetChannelMessagesParams): Promise<GetChannelMessagesResult> {
-        // 1. Validate parameters
-            const validationResult = GetChannelMessagesSchema.safeParse(params);
-            if (!validationResult.success) {
-                const errors = validationResult.error.format();
-                throw new BadRequestError(`Invalid parameters: ${JSON.stringify(errors)}`);
-            }
-
-            // 2. Check if user is a member of the channel
             const isMember = await channelMemberRepository.isUserChannelMember(params.userId, params.channelId);
             if (!isMember) {
                 throw new ForbiddenError("User is not a member of this channel");
             }
 
-            // 3. Prepare pagination params
             const paginationParams = {
                 limit: params.limit || 50,
                 cursor: params.cursor,
@@ -33,10 +24,8 @@ export function createGetChannelMessagesUseCase(messageRepository: MessageReposi
                 },
             };
 
-            // 4. Get messages
             const { data: messages, nextCursor } = await messageRepository.getMessages(paginationParams);
 
-            // 5. Get attachments for all messages
             const messageIds = messages.map(message => message.id);
             const attachmentsPromises = messageIds.map(messageId =>
                 attachmentRepository.getAttachmentsByMessageId(messageId),
@@ -48,7 +37,6 @@ export function createGetChannelMessagesUseCase(messageRepository: MessageReposi
                 return acc;
             }, {} as Record<string, any[]>);
 
-            // 6. Get reactions for all messages
             const reactions = await reactionRepository.getReactionsByMessageIds(messageIds);
 
             return {

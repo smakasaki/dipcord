@@ -1,7 +1,7 @@
 import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
 
 import { ChannelIdParam, EmojiParam, GetChannelMessagesSchema, MessageIdParam, MessageReactionResponseSchema, MessageResponseSchema, MessagesResponseSchema, MessageWithDetailsResponseSchema, SendMessageSchema, ToggleReactionSchema, UpdateMessageSchema } from "@dipcord/schema";
-import { StandardErrorResponses } from "@dipcord/schema/common";
+import { ErrorResponse, ValidationErrorResponse } from "@dipcord/schema/common";
 import { z } from "zod";
 
 /**
@@ -19,10 +19,13 @@ const routes: FastifyPluginAsyncZod = async function (fastify): Promise<void> {
             tags: ["Messages"],
             description: "Create a new message in a channel",
             params: ChannelIdParam,
-            body: SendMessageSchema,
+            body: SendMessageSchema.omit({ channelId: true }),
             response: {
                 201: MessageResponseSchema,
-                ...StandardErrorResponses,
+                400: ValidationErrorResponse,
+                401: ErrorResponse,
+                403: ErrorResponse,
+                404: ErrorResponse,
             },
             security: [{ cookieAuth: [] }],
         },
@@ -63,7 +66,10 @@ const routes: FastifyPluginAsyncZod = async function (fastify): Promise<void> {
             querystring: GetChannelMessagesSchema.omit({ channelId: true }),
             response: {
                 200: MessagesResponseSchema,
-                ...StandardErrorResponses,
+                400: ValidationErrorResponse,
+                401: ErrorResponse,
+                403: ErrorResponse,
+                404: ErrorResponse,
             },
             security: [{ cookieAuth: [] }],
         },
@@ -127,7 +133,10 @@ const routes: FastifyPluginAsyncZod = async function (fastify): Promise<void> {
             querystring: GetChannelMessagesSchema.omit({ channelId: true, parentMessageId: true }),
             response: {
                 200: MessagesResponseSchema,
-                ...StandardErrorResponses,
+                400: ValidationErrorResponse,
+                401: ErrorResponse,
+                403: ErrorResponse,
+                404: ErrorResponse,
             },
             security: [{ cookieAuth: [] }],
         },
@@ -200,7 +209,9 @@ const routes: FastifyPluginAsyncZod = async function (fastify): Promise<void> {
             params: MessageIdParam,
             response: {
                 200: MessageWithDetailsResponseSchema,
-                ...StandardErrorResponses,
+                401: ErrorResponse,
+                403: ErrorResponse,
+                404: ErrorResponse,
             },
             security: [{ cookieAuth: [] }],
         },
@@ -245,7 +256,10 @@ const routes: FastifyPluginAsyncZod = async function (fastify): Promise<void> {
             body: UpdateMessageSchema.omit({ messageId: true }),
             response: {
                 200: MessageResponseSchema,
-                ...StandardErrorResponses,
+                400: ValidationErrorResponse,
+                401: ErrorResponse,
+                403: ErrorResponse,
+                404: ErrorResponse,
             },
             security: [{ cookieAuth: [] }],
         },
@@ -280,7 +294,9 @@ const routes: FastifyPluginAsyncZod = async function (fastify): Promise<void> {
             params: MessageIdParam,
             response: {
                 200: MessageResponseSchema,
-                ...StandardErrorResponses,
+                401: ErrorResponse,
+                403: ErrorResponse,
+                404: ErrorResponse,
             },
             security: [{ cookieAuth: [] }],
         },
@@ -317,7 +333,10 @@ const routes: FastifyPluginAsyncZod = async function (fastify): Promise<void> {
                     action: z.enum(["add", "remove"]),
                     reaction: MessageReactionResponseSchema.nullable(),
                 }),
-                ...StandardErrorResponses,
+                400: ValidationErrorResponse,
+                401: ErrorResponse,
+                403: ErrorResponse,
+                404: ErrorResponse,
             },
             security: [{ cookieAuth: [] }],
         },
@@ -356,7 +375,9 @@ const routes: FastifyPluginAsyncZod = async function (fastify): Promise<void> {
             params: MessageIdParam.merge(EmojiParam),
             response: {
                 204: z.object({}),
-                ...StandardErrorResponses,
+                401: ErrorResponse,
+                403: ErrorResponse,
+                404: ErrorResponse,
             },
             security: [{ cookieAuth: [] }],
         },
@@ -389,7 +410,7 @@ const routes: FastifyPluginAsyncZod = async function (fastify): Promise<void> {
             }),
             response: {
                 200: MessagesResponseSchema,
-                ...StandardErrorResponses,
+                401: ErrorResponse,
             },
             security: [{ cookieAuth: [] }],
         },

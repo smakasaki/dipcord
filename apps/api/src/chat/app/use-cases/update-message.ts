@@ -8,33 +8,21 @@ import type { MessageRepository, NotificationService } from "../ports/outgoing.j
 export function createUpdateMessageUseCase(messageRepository: MessageRepository, notificationService: NotificationService): UpdateMessageUseCase {
     return {
         async execute(params: UpdateMessageParams) {
-        // 1. Validate parameters
-            const validationResult = UpdateMessageSchema.safeParse(params);
-            if (!validationResult.success) {
-                const errors = validationResult.error.format();
-                throw new BadRequestError(`Invalid parameters: ${JSON.stringify(errors)}`);
-            }
-
-            // 2. Get the message
             const message = await messageRepository.getMessage(params.messageId);
             if (!message) {
-                throw new NotFoundError("Message not found");
+                throw new NotFoundError(`Message with ID ${params.messageId} not found`);
             }
 
-            // 3. Check if user is the author
             if (message.userId !== params.userId) {
                 throw new ForbiddenError("Only the author can edit this message");
             }
 
-            // 4. Check if message is deleted
             if (message.isDeleted) {
                 throw new BadRequestError("Cannot edit deleted message");
             }
 
-            // 5. Update message
             const updatedMessage = await messageRepository.updateMessage(params.messageId, params.content);
 
-            // 6. Notify about the update
             await notificationService.notifyMessageUpdated(updatedMessage);
 
             return updatedMessage;
