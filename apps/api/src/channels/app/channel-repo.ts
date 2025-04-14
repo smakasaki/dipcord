@@ -33,6 +33,19 @@ export type IChannelRepository = {
     findById: (id: string) => Promise<Channel | undefined>;
 
     /**
+     * Find channels by multiple IDs with pagination and sorting
+     * @param ids Array of channel IDs
+     * @param pagination Pagination parameters
+     * @param sortBy Sort configuration
+     * @returns Paginated channels
+     */
+    findByIds: (
+        ids: string[],
+        pagination: Pagination,
+        sortBy: SortBy<Channel>
+    ) => Promise<PaginatedResult<Channel>>;
+
+    /**
      * Update channel
      * @param id Channel id
      * @param data Channel data to update

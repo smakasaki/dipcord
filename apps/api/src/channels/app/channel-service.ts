@@ -79,12 +79,25 @@ export class ChannelService {
         return channel;
     }
 
-    async getUserChannels(userId: string): Promise<Channel[]> {
+    async getUserChannels(
+        userId: string,
+        pagination: Pagination,
+        sortBy: SortBy<Channel>,
+    ): Promise<PaginatedResult<Channel>> {
         const channelIds = await this.channelMemberRepository.getChannelsByUserId(userId);
-        const channels = await Promise.all(
-            channelIds.map(id => this.channelRepository.findById(id)),
+
+        if (channelIds.length === 0) {
+            return {
+                count: 0,
+                data: [],
+            };
+        }
+
+        return this.channelRepository.findByIds(
+            channelIds,
+            pagination,
+            sortBy,
         );
-        return channels.filter((channel): channel is Channel => channel !== null);
     }
 
     async getAllChannels(

@@ -31,6 +31,41 @@ import { decodeSort, validateSortFields } from "#commons/infra/http/utils/decode
  */
 const routes: FastifyPluginAsyncZod = async function (fastify): Promise<void> {
     /**
+     * Get channels where the current user is a member
+     */
+    fastify.get("/users/me/channels", {
+        config: {
+            auth: true,
+        },
+        schema: {
+            tags: ["Channels", "Users"],
+            description: "Get channels where the authenticated user is a member",
+            querystring: Pagination.merge(SortQuery),
+            response: {
+                200: PaginatedChannelsResponse,
+                ...ChannelErrorResponses,
+            },
+            security: [{ cookieAuth: [] }],
+        },
+    }, async (request) => {
+        const { offset, limit, sort } = request.query;
+
+        const validSortFields = ["id", "name", "createdAt", "updatedAt"];
+        const validatedSort = validateSortFields(sort || ["createdAt.desc"], validSortFields);
+
+        const result = await fastify.channelService.getUserChannels(
+            request.user!.id,
+            { offset: offset ?? 0, limit: limit ?? 20 },
+            decodeSort(validatedSort),
+        );
+
+        return {
+            count: result.count,
+            data: result.data.map(mapChannelToResponse),
+        };
+    });
+
+    /**
      * Create new channel
      */
     fastify.post("/channels", {
