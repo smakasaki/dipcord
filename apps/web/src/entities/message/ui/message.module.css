@@ -55,9 +55,36 @@
     border-left: 2px solid #f06418;
 }
 
+.clickableReply {
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.clickableReply:hover {
+    background-color: light-dark(var(--mantine-color-gray-2), rgba(79, 84, 92, 0.3));
+}
+
+.clickableReply:focus-visible {
+    outline: 2px solid var(--mantine-color-blue-5);
+}
+
 .replyUsername {
     color: #f06418;
     font-weight: 500;
+}
+
+.replyContent {
+    color: light-dark(var(--mantine-color-gray-7), var(--mantine-color-gray-5));
+    display: inline-block;
+    max-width: calc(100% - 100px);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    vertical-align: bottom;
+}
+
+.italic {
+    font-style: italic;
 }
 
 .attachments {

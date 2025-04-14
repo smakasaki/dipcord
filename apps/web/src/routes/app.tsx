@@ -2,6 +2,8 @@ import { AppShell, Burger } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { createFileRoute, Outlet } from "@tanstack/react-router";
 import { ChannelNavbar } from "#/features/channel-navigation";
+import { useFetchUserChannels } from "#/features/channels";
+import { useEffect } from "react";
 
 export const Route = createFileRoute("/app")({
     component: AppLayout,
@@ -9,6 +11,11 @@ export const Route = createFileRoute("/app")({
 
 function AppLayout() {
     const [mobileOpened, { toggle: toggleMobile }] = useDisclosure();
+    const { getUserChannels } = useFetchUserChannels();
+
+    useEffect(() => {
+        getUserChannels();
+    }, [getUserChannels]);
 
     return (
         <AppShell

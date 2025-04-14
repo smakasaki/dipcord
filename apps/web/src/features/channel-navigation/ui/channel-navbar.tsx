@@ -1,3 +1,5 @@
+import type { Channel } from "#/entities/channel";
+
 import { Avatar, ScrollArea, Title, Tooltip, UnstyledButton } from "@mantine/core";
 import {
     IconChartBar,
@@ -9,16 +11,11 @@ import {
     IconUserCircle,
 } from "@tabler/icons-react";
 import { useNavigate } from "@tanstack/react-router";
+import { useChannels, useChannelsLoading, useFetchUserChannels } from "#/features/channels";
 import { DipcordLogo } from "#/shared/ui/logos";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import classes from "./channel-navbar.module.css";
-
-type Channel = {
-    id: string;
-    name: string;
-    color: string;
-};
 
 type SystemLink = {
     id: string;
@@ -32,31 +29,6 @@ type TabLink = {
     icon: React.FC<any>;
     label: string;
 };
-
-// Channel data (replace with actual data)
-const channelsMockdata: Channel[] = [
-    { id: "1", name: "General", color: "brand-orange" },
-    { id: "2", name: "Marketing", color: "blue" },
-    { id: "3", name: "Development", color: "green" },
-    { id: "4", name: "Design", color: "violet" },
-    { id: "5", name: "Sales", color: "yellow" },
-    { id: "6", name: "Support", color: "teal" },
-    { id: "7", name: "HR", color: "pink" },
-    { id: "8", name: "Finance", color: "indigo" },
-    { id: "9", name: "Research", color: "cyan" },
-    { id: "10", name: "Operations", color: "grape" },
-    { id: "11", name: "Test", color: "green" },
-    { id: "12", name: "Test2", color: "grape" },
-    { id: "13", name: "Test3", color: "cyan" },
-    { id: "15", name: "Test5", color: "teal" },
-    { id: "14", name: "Test4", color: "indigo" },
-    { id: "16", name: "Test6", color: "pink" },
-    { id: "17", name: "Test7", color: "yellow" },
-
-];
-
-// Default channel id
-const DEFAULT_CHANNEL_ID = "1";
 
 // System links at the bottom of the first column
 const systemLinksMockdata: SystemLink[] = [
@@ -85,15 +57,28 @@ const settingsTabsMockdata = [
 
 export function ChannelNavbar() {
     const navigate = useNavigate();
+    const channels = useChannels();
+    const isChannelsLoading = useChannelsLoading();
+    const { getUserChannels } = useFetchUserChannels();
 
-    const [activeChannel, setActiveChannel] = useState(DEFAULT_CHANNEL_ID);
+    const [activeChannel, setActiveChannel] = useState("");
     const [activeSystemLink, setActiveSystemLink] = useState("");
     const [activeTab, setActiveTab] = useState("chat");
 
+    useEffect(() => {
+        getUserChannels();
+    }, [getUserChannels]);
+
+    useEffect(() => {
+        if (channels.length > 0 && !activeChannel) {
+            setActiveChannel(channels[0]?.id || "");
+        }
+    }, [channels, activeChannel]);
+
     // Render channel avatars for the first column
-    const channelLinks = channelsMockdata.map(channel => (
+    const channelLinks = channels.map((channel: Channel) => (
         <Tooltip
-            label={channel.name}
+            label={channel.name || ""}
             position="right"
             withArrow
             transitionProps={{ duration: 0 }}
@@ -114,11 +99,11 @@ export function ChannelNavbar() {
                     data-active={channel.id === activeChannel && !activeSystemLink ? true : undefined}
                 >
                     <Avatar
-                        color={channel.color}
+                        color={getChannelColor(channel.id)}
                         radius="xl"
                         size="sm"
                     >
-                        {channel.name.substring(0, 2)}
+                        {(channel.name || "").substring(0, 2)}
                     </Avatar>
                 </UnstyledButton>
             </div>
@@ -157,7 +142,7 @@ export function ChannelNavbar() {
 
     if (activeChannel) {
     // Show channel tabs and use the channel name as title
-        const activeChannelData = channelsMockdata.find(c => c.id === activeChannel);
+        const activeChannelData = channels.find(c => c.id === activeChannel);
         title = activeChannelData?.name || "";
 
         tabs = channelTabsMockdata.map(tab => (
@@ -248,27 +233,41 @@ export function ChannelNavbar() {
                         type="hover"
                         offsetScrollbars
                     >
-                        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginLeft: 8 }}>
-                            {channelLinks}
+                        <div className={classes.links}>
+                            {isChannelsLoading
+                                ? (
+                                        <div style={{ textAlign: "center", padding: "10px" }}>Loading...</div>
+                                    )
+                                : channelLinks}
                         </div>
                     </ScrollArea>
 
-                    {/* System links at the bottom */}
-                    <div className={classes.systemLinks}>
-                        {systemLinks}
+                    <div style={{ padding: "0 6px" }}>
+                        <div className={classes.footer}>
+                            {systemLinks}
+                        </div>
                     </div>
                 </div>
 
                 <div className={classes.main}>
-                    <Title order={4} className={classes.title}>
+                    <Title order={4} fw={500} style={{ marginLeft: 16, marginBottom: 16 }}>
                         {title}
                     </Title>
 
-                    <div className={classes.links}>
-                        {tabs}
-                    </div>
+                    {tabs.length > 0 && (
+                        <div className={classes.links}>
+                            {tabs}
+                        </div>
+                    )}
                 </div>
             </div>
         </nav>
     );
+}
+
+// Helper function to generate consistent colors for channels based on ID
+function getChannelColor(channelId: string): string {
+    const colors = ["brand-orange", "blue", "green", "violet", "yellow", "teal", "pink", "indigo", "cyan", "grape"];
+    const hashCode = channelId.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    return colors[hashCode % colors.length] || "gray";
 }

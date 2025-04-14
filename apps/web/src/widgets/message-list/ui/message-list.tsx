@@ -1,9 +1,9 @@
+import type { MessageType } from "#/entities/message";
+
 import { Button, Divider, Group, ScrollArea, Text } from "@mantine/core";
+import { Message as MessageComponent } from "#/entities/message";
 import { useEffect, useRef, useState } from "react";
 
-import type { MessageType } from "../../../entities/message";
-
-import { Message as MessageComponent } from "../../../entities/message";
 import styles from "./message-list.module.css";
 
 type MessageGroup = {
@@ -20,6 +20,8 @@ type MessageListProps = {
     onReact: (messageId: string) => void;
     onLoadMore: () => Promise<boolean>;
     hasMoreMessages: boolean;
+    isLoading?: boolean;
+    typingText?: string;
 };
 
 export function MessageList({
@@ -31,12 +33,18 @@ export function MessageList({
     onReact,
     onLoadMore,
     hasMoreMessages,
+    isLoading = false,
+    typingText,
 }: MessageListProps) {
     const [loading, setLoading] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const [showNewMessagesBanner, setShowNewMessagesBanner] = useState(false);
     const viewportRef = useRef<HTMLDivElement>(null);
     const [initialLoad, setInitialLoad] = useState(true);
+    const messageRefs = useRef<Record<string, HTMLDivElement>>({});
+    const [previousMessagesLength, setPreviousMessagesLength] = useState(0);
+    const lastScrollPositionRef = useRef<number>(0);
+    const firstVisibleMessageRef = useRef<string | null>(null);
 
     // Group messages by date
     const messageGroups = groupMessagesByDate(messages);
@@ -48,6 +56,54 @@ export function MessageList({
             setInitialLoad(false);
         }
     }, [initialLoad, messages.length]);
+
+    // Сохраняем позицию скролла перед загрузкой новых сообщений
+    useEffect(() => {
+        if (viewportRef.current && loading) {
+            lastScrollPositionRef.current = viewportRef.current.scrollTop;
+
+            // Сохраняем ID первого видимого сообщения
+            if (messages.length > 0) {
+                const viewport = viewportRef.current;
+                const scrollPos = viewport.scrollTop;
+
+                // Находим первое сообщение, которое видно в viewport
+                for (const messageId in messageRefs.current) {
+                    const messageEl = messageRefs.current[messageId];
+                    if (!messageEl)
+                        continue;
+
+                    const rect = messageEl.getBoundingClientRect();
+                    const elTop = rect.top + scrollPos - viewport.getBoundingClientRect().top;
+
+                    if (elTop > scrollPos) {
+                        firstVisibleMessageRef.current = messageId;
+                        break;
+                    }
+                }
+            }
+        }
+    }, [loading, messages.length]);
+
+    // Восстанавливаем позицию скролла после загрузки сообщений
+    useEffect(() => {
+        if (!loading && messages.length > previousMessagesLength && !initialLoad) {
+            // Если загрузились новые сообщения и это не первая загрузка
+            const messageId = firstVisibleMessageRef.current;
+
+            if (messageId && messageRefs.current[messageId]) {
+                // Восстанавливаем позицию, чтобы пользователь остался на том же месте
+                setTimeout(() => {
+                    if (messageRefs.current[messageId]) {
+                        messageRefs.current[messageId].scrollIntoView({ block: "start", behavior: "auto" });
+                    }
+                }, 10);
+            }
+        }
+
+        // Обновляем предыдущую длину сообщений для следующего сравнения
+        setPreviousMessagesLength(messages.length);
+    }, [messages.length, loading, initialLoad]);
 
     // Auto-scroll to bottom on new messages
     useEffect(() => {
@@ -66,7 +122,7 @@ export function MessageList({
     }, [messages.length, initialLoad]);
 
     const handleLoadMore = async () => {
-        if (loading || !hasMoreMessages)
+        if (loading || isLoading || !hasMoreMessages)
             return;
 
         setLoading(true);
@@ -79,7 +135,7 @@ export function MessageList({
     // Handle scroll detection
     const handleScroll = ({ y }: { x: number; y: number }) => {
         // Load more messages when reaching the top
-        if (y < 50 && !loading && hasMoreMessages) {
+        if (y < 150 && !loading && !isLoading && hasMoreMessages) {
             handleLoadMore();
         }
 
@@ -104,6 +160,16 @@ export function MessageList({
         }
     };
 
+    // Функция для прокрутки к указанному сообщению
+    const scrollToMessage = (messageId: string) => {
+        if (messageRefs.current[messageId]) {
+            messageRefs.current[messageId].scrollIntoView({
+                behavior: "smooth",
+                block: "center",
+            });
+        }
+    };
+
     return (
         <div className={styles.container}>
             <ScrollArea
@@ -120,7 +186,7 @@ export function MessageList({
                         <div className={styles.loadMoreContainer}>
                             <Button
                                 onClick={handleLoadMore}
-                                loading={loading}
+                                loading={loading || isLoading}
                                 variant="subtle"
                                 size="xs"
                             >
@@ -137,15 +203,25 @@ export function MessageList({
                             />
 
                             {group.messages.map((message, messageIndex) => {
-                                const isAuthorSame = messageIndex > 0
-                                    && group.messages[messageIndex - 1].author.id === message.author.id
-                                    && new Date(message.timestamp).getTime()
-                                    - new Date(group.messages[messageIndex - 1].timestamp).getTime() < 5 * 60 * 1000;
+                                // Проверяем, что сообщение и его поля валидны
+                                if (!message || !message.id || !message.author) {
+                                    return null;
+                                }
+
+                                const prevMessage = messageIndex > 0 ? group.messages[messageIndex - 1] : null;
+                                const isAuthorSame = !!prevMessage
+                                    && prevMessage.author?.id === message.author?.id
+                                    && (new Date(message.timestamp).getTime()
+                                        - new Date(prevMessage.timestamp).getTime()) < 5 * 60 * 1000;
 
                                 return (
                                     <div
                                         key={message.id}
                                         className={isAuthorSame ? styles.continuedMessage : styles.message}
+                                        ref={(el) => {
+                                            if (el)
+                                                messageRefs.current[message.id] = el;
+                                        }}
                                     >
                                         <MessageComponent
                                             message={message}
@@ -154,6 +230,7 @@ export function MessageList({
                                             onEdit={content => onEdit(message.id, content)}
                                             onDelete={() => onDelete(message.id)}
                                             onReact={() => onReact(message.id)}
+                                            onGoToMessage={scrollToMessage}
                                         />
                                     </div>
                                 );
@@ -161,16 +238,29 @@ export function MessageList({
                         </div>
                     ))}
 
+                    {/* Add typing indicator at the end of messages */}
+                    {typingText && (
+                        <div className={styles.typingIndicator}>
+                            <Text size="xs" fs="italic" c="dimmed">
+                                {typingText}
+                            </Text>
+                        </div>
+                    )}
+
+                    {/* This ref helps scroll to the end */}
                     <div ref={messagesEndRef} />
                 </div>
             </ScrollArea>
 
             {showNewMessagesBanner && (
-                <div className={styles.newMessagesBanner}>
-                    <Button variant="filled" color="brand-orange" size="xs" onClick={scrollToBottom}>
-                        New messages
-                    </Button>
-                </div>
+                <Button
+                    className={styles.newMessagesBanner}
+                    onClick={scrollToBottom}
+                    variant="light"
+                    color="orange"
+                >
+                    New messages
+                </Button>
             )}
         </div>
     );

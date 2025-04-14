@@ -1,4 +1,4 @@
-import { ActionIcon, Avatar, Divider, Group, Indicator, ScrollArea, Text, TextInput, Tooltip } from "@mantine/core";
+import { ActionIcon, Avatar, Badge, Divider, Group, Indicator, ScrollArea, Text, TextInput, Tooltip } from "@mantine/core";
 import {
     IconBell,
     IconHash,
@@ -19,6 +19,7 @@ type ChannelHeaderProps = {
     onlineCount?: number;
     onToggleMembersList: () => void;
     membersListVisible: boolean;
+    connectionStatus?: string;
 };
 
 export function ChannelHeader({
@@ -26,6 +27,7 @@ export function ChannelHeader({
     channelTopic = "",
     onToggleMembersList,
     membersListVisible,
+    connectionStatus,
 }: ChannelHeaderProps) {
     return (
         <div className={styles.container}>
@@ -39,6 +41,16 @@ export function ChannelHeader({
                     <Text c="dimmed" lineClamp={1} className={styles.topic}>
                         {channelTopic}
                     </Text>
+                )}
+
+                {connectionStatus && (
+                    <Badge
+                        size="sm"
+                        variant="light"
+                        color={connectionStatus.includes("Connected") ? "green" : "orange"}
+                    >
+                        {connectionStatus}
+                    </Badge>
                 )}
             </Group>
 

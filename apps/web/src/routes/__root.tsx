@@ -3,6 +3,7 @@ import type { MantineColorsTuple } from "@mantine/core";
 import { createTheme, MantineProvider } from "@mantine/core";
 import { createRootRoute, Outlet } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
+import { SocketDebug } from "#/shared/ui/debug-socket";
 import "@mantine/core/styles.css";
 
 const orangeColor: MantineColorsTuple = [
@@ -46,6 +47,9 @@ export const Route = createRootRoute({
                 <Outlet />
                 {// eslint-disable-next-line node/no-process-env
                     process.env.NODE_ENV !== "production" && <TanStackRouterDevtools />
+                }
+                {// eslint-disable-next-line node/no-process-env
+                    process.env.NODE_ENV !== "production" && <SocketDebug />
                 }
             </div>
         </MantineProvider>

@@ -23,7 +23,7 @@ type ChatPanelProps = {
 };
 
 export function ChatPanel({
-    channelId,
+    channelId: _channelId,
     channelName,
     channelTopic,
     memberCount,
@@ -31,13 +31,14 @@ export function ChatPanel({
     messages,
     currentUserId,
     onSendMessage,
-    onEditMessage,
+    onEditMessage: _onEditMessage,
     onDeleteMessage,
     onLoadMoreMessages,
     hasMoreMessages,
 }: ChatPanelProps) {
     const [replyToMessage, setReplyToMessage] = useState<MessageType | undefined>(undefined);
-    const [editingMessageId, setEditingMessageId] = useState<string | undefined>(undefined);
+    const [_editingMessageId, setEditingMessageId] = useState<string | undefined>(undefined);
+    const [membersListVisible, setMembersListVisible] = useState(false);
 
     const handleReply = (message: MessageType) => {
         setReplyToMessage(message);
@@ -55,14 +56,17 @@ export function ChatPanel({
         onDeleteMessage(messageId);
     };
 
-    const handleReact = (messageId: string) => {
+    const handleReact = (_messageId: string) => {
     // Mock implementation - in a real app this would show a reaction picker
-        console.log("React to message:", messageId);
     };
 
-    const handleSendMessage = (content: string, attachments: File[]) => {
-        onSendMessage(content, attachments, replyToMessage?.id);
+    const handleSendMessage = (content: string, attachments: File[], replyToMessageId?: string) => {
+        onSendMessage(content, attachments, replyToMessageId);
         setReplyToMessage(undefined);
+    };
+
+    const toggleMembersList = () => {
+        setMembersListVisible(!membersListVisible);
     };
 
     return (
@@ -72,6 +76,8 @@ export function ChatPanel({
                 channelTopic={channelTopic}
                 memberCount={memberCount}
                 onlineCount={onlineCount}
+                onToggleMembersList={toggleMembersList}
+                membersListVisible={membersListVisible}
             />
 
             <div className={styles.messagesContainer}>

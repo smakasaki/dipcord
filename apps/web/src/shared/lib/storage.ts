@@ -11,8 +11,7 @@ export function getStorageValue<T>(key: string, storage: StorageType = "local"):
 
         return JSON.parse(item) as T;
     }
-    catch (error) {
-        console.error(`Error getting item ${key} from ${storage}Storage:`, error);
+    catch {
         return null;
     }
 }
@@ -27,8 +26,8 @@ export function setStorageValue<T>(
         const serializedValue = JSON.stringify(value);
         storageType.setItem(key, serializedValue);
     }
-    catch (error) {
-        console.error(`Error setting item ${key} in ${storage}Storage:`, error);
+    catch {
+        // Storage operation failed
     }
 }
 
@@ -40,7 +39,7 @@ export function removeStorageValue(
         const storageType = storage === "local" ? localStorage : sessionStorage;
         storageType.removeItem(key);
     }
-    catch (error) {
-        console.error(`Error removing item ${key} from ${storage}Storage:`, error);
+    catch {
+        // Storage operation failed
     }
 }

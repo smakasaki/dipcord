@@ -25,7 +25,7 @@ import type { User } from "../../../entities/message";
 import styles from "./message-input.module.css";
 
 type MessageInputProps = {
-    onSendMessage: (content: string, attachments: File[]) => void;
+    onSendMessage: (content: string, attachments: File[], replyToMessageId?: string) => void;
     replyToMessage?: {
         id: string;
         content: string;
@@ -33,16 +33,28 @@ type MessageInputProps = {
     };
     onCancelReply?: () => void;
     channelName?: string;
+    onFocus?: () => void;
+    onBlur?: () => void;
+    onTyping?: () => void;
 };
 
-export function MessageInput({ onSendMessage, replyToMessage, onCancelReply, channelName }: MessageInputProps) {
+export function MessageInput({
+    onSendMessage,
+    replyToMessage,
+    onCancelReply,
+    channelName,
+    onFocus,
+    onBlur,
+    onTyping,
+}: MessageInputProps) {
     const [message, setMessage] = useState("");
     const [attachments, setAttachments] = useState<File[]>([]);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     const handleSubmit = () => {
         if (message.trim() || attachments.length > 0) {
-            onSendMessage(message, attachments);
+            onSendMessage(message, attachments, replyToMessage?.id);
             setMessage("");
             setAttachments([]);
         }
@@ -53,6 +65,30 @@ export function MessageInput({ onSendMessage, replyToMessage, onCancelReply, cha
             e.preventDefault();
             handleSubmit();
         }
+        else {
+            // Handle typing indicator
+            if (onTyping) {
+                onTyping();
+
+                // Clear any existing timeout
+                if (typingTimeoutRef.current) {
+                    clearTimeout(typingTimeoutRef.current);
+                }
+
+                // Reset the timeout for typing indicator
+                typingTimeoutRef.current = setTimeout(() => {
+                    if (onBlur)
+                        onBlur();
+                }, 3000);
+            }
+        }
+    };
+
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setMessage(e.currentTarget.value);
+        // Trigger typing indicator
+        if (onTyping)
+            onTyping();
     };
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -132,8 +168,10 @@ export function MessageInput({ onSendMessage, replyToMessage, onCancelReply, cha
                 <TextInput
                     placeholder={`Message ${channelName ? `#${channelName}` : ""}`}
                     value={message}
-                    onChange={e => setMessage(e.currentTarget.value)}
+                    onChange={handleInputChange}
                     onKeyDown={handleKeyDown}
+                    onFocus={onFocus}
+                    onBlur={onBlur}
                     className={styles.input}
                     rightSection={(
                         <ActionIcon onClick={handleSubmit} disabled={!message.trim() && attachments.length === 0} color="orange.6">
