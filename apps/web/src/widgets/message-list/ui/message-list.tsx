@@ -93,11 +93,13 @@ export function MessageList({
 
             if (messageId && messageRefs.current[messageId]) {
                 // Восстанавливаем позицию, чтобы пользователь остался на том же месте
-                setTimeout(() => {
+                const timeoutId = setTimeout(() => {
                     if (messageRefs.current[messageId]) {
                         messageRefs.current[messageId].scrollIntoView({ block: "start", behavior: "auto" });
                     }
                 }, 10);
+
+                return () => clearTimeout(timeoutId);
             }
         }
 
@@ -114,12 +116,15 @@ export function MessageList({
 
             if (isAtBottom) {
                 messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+                if (showNewMessagesBanner) {
+                    setShowNewMessagesBanner(false);
+                }
             }
-            else {
+            else if (!showNewMessagesBanner) {
                 setShowNewMessagesBanner(true);
             }
         }
-    }, [messages.length, initialLoad]);
+    }, [messages.length, initialLoad, showNewMessagesBanner]);
 
     const handleLoadMore = async () => {
         if (loading || isLoading || !hasMoreMessages)
@@ -156,7 +161,9 @@ export function MessageList({
     const scrollToBottom = () => {
         if (messagesEndRef.current) {
             messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
-            setShowNewMessagesBanner(false);
+            if (showNewMessagesBanner) {
+                setShowNewMessagesBanner(false);
+            }
         }
     };
 
