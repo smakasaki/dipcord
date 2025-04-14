@@ -3,7 +3,8 @@
 
 import { execSync } from "node:child_process";
 import fs from "node:fs";
-import { resolve } from "node:path";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 
 const colors = {
     reset: "\x1B[0m",
@@ -11,6 +12,9 @@ const colors = {
     red: "\x1B[31m",
     cyan: "\x1B[36m",
 };
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 const API_URL = process.env.API_URL || "http://localhost:3001/documentation/json";
 const OUTPUT_DIR = resolve(__dirname, "../src/shared/api/types");

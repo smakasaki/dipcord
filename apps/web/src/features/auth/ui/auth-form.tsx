@@ -1,4 +1,3 @@
-import { typeboxResolver } from "@hookform/resolvers/typebox";
 import {
     Alert,
     Anchor,
@@ -15,14 +14,14 @@ import {
     TextInput,
     Title,
 } from "@mantine/core";
+import { useForm, zodResolver } from "@mantine/form";
 import { IconAlertCircle } from "@tabler/icons-react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
-import { useForm } from "react-hook-form";
 
 import type { LoginFormType, RegisterFormType } from "../model";
 
-import { loginCheck, registerCheck, useAuthError, useIsAuthenticated, useLoginMutation, useRegisterMutation, validatePasswordConfirmation } from "../model";
+import { loginSchema, registerSchema, useAuthError, useIsAuthenticated, useLoginMutation, useRegisterMutation } from "../model";
 import classes from "./auth-form.module.css";
 import { GoogleButton } from "./google-button";
 import { MicrosoftButton } from "./microsoft-button";
@@ -45,29 +44,26 @@ export function AuthForm({ type }: AuthFormProps) {
         }
     }, [isAuthenticated, navigate]);
 
-    const {
-        register: registerLogin,
-        handleSubmit: handleLoginSubmit,
-        formState: { errors: loginErrors },
-    } = useForm<LoginFormType>({
-        resolver: typeboxResolver(loginCheck),
-        defaultValues: {
+    const loginForm = useForm<LoginFormType>({
+        initialValues: {
+            email: "",
+            password: "",
             rememberMe: false,
         },
+        validate: zodResolver(loginSchema),
     });
 
-    const {
-        register: registerSignup,
-        handleSubmit: handleSignupSubmit,
-        formState: { errors: signupErrors },
-        watch,
-        setError,
-        trigger,
-    } = useForm<RegisterFormType>({
-        resolver: typeboxResolver(registerCheck),
-        defaultValues: {
+    const registerForm = useForm<RegisterFormType>({
+        initialValues: {
+            name: "",
+            surname: "",
+            username: "",
+            email: "",
+            password: "",
+            passwordConfirm: "",
             agreement: false,
         },
+        validate: zodResolver(registerSchema),
     });
 
     const handleLoginFormSubmit = async (data: LoginFormType) => {
@@ -78,31 +74,9 @@ export function AuthForm({ type }: AuthFormProps) {
     };
 
     const handleRegisterFormSubmit = async (data: RegisterFormType) => {
-        if (data.agreement === false) {
-            setError("agreement", {
-                type: "manual",
-                message: "Вы должны согласиться с условиями использования",
-            });
-            return;
-        }
-
-        const errors = validatePasswordConfirmation(data);
-        if (Object.keys(errors).length > 0) {
-            for (const [key, message] of Object.entries(errors)) {
-                setError(key as keyof RegisterFormType, {
-                    type: "manual",
-                    message,
-                });
-            }
-            return;
-        }
-
         const { passwordConfirm, agreement, ...userData } = data;
-
         await registerMutation(userData);
     };
-
-    const password = watch("password");
 
     const isLoading = isLogin ? isLoginLoading : isRegisterLoading;
 
@@ -140,14 +114,13 @@ export function AuthForm({ type }: AuthFormProps) {
 
                 {isLogin
                     ? (
-                            <form onSubmit={handleLoginSubmit(handleLoginFormSubmit)}>
+                            <form onSubmit={loginForm.onSubmit(handleLoginFormSubmit)}>
                                 <Stack>
                                     <TextInput
                                         label="Email"
                                         placeholder="example@mail.com"
                                         radius="md"
-                                        {...registerLogin("email")}
-                                        error={loginErrors.email?.message}
+                                        {...loginForm.getInputProps("email")}
                                         disabled={isLoading}
                                     />
 
@@ -155,15 +128,14 @@ export function AuthForm({ type }: AuthFormProps) {
                                         label="Пароль"
                                         placeholder="Ваш пароль"
                                         radius="md"
-                                        {...registerLogin("password")}
-                                        error={loginErrors.password?.message}
+                                        {...loginForm.getInputProps("password")}
                                         disabled={isLoading}
                                     />
 
                                     <Group justify="space-between" mt="md">
                                         <Checkbox
                                             label="Запомнить меня"
-                                            {...registerLogin("rememberMe")}
+                                            {...loginForm.getInputProps("rememberMe", { type: "checkbox" })}
                                             disabled={isLoading}
                                         />
                                         <Anchor component="button" size="sm">
@@ -184,14 +156,13 @@ export function AuthForm({ type }: AuthFormProps) {
                             </form>
                         )
                     : (
-                            <form onSubmit={handleSignupSubmit(handleRegisterFormSubmit)}>
+                            <form onSubmit={registerForm.onSubmit(handleRegisterFormSubmit)}>
                                 <Stack>
                                     <TextInput
                                         label="Имя"
                                         placeholder="Ваше имя"
                                         radius="md"
-                                        {...registerSignup("name")}
-                                        error={signupErrors.name?.message}
+                                        {...registerForm.getInputProps("name")}
                                         disabled={isLoading}
                                     />
 
@@ -199,8 +170,7 @@ export function AuthForm({ type }: AuthFormProps) {
                                         label="Фамилия"
                                         placeholder="Ваша фамилия"
                                         radius="md"
-                                        {...registerSignup("surname")}
-                                        error={signupErrors.surname?.message}
+                                        {...registerForm.getInputProps("surname")}
                                         disabled={isLoading}
                                     />
 
@@ -208,8 +178,7 @@ export function AuthForm({ type }: AuthFormProps) {
                                         label="Имя пользователя"
                                         placeholder="username"
                                         radius="md"
-                                        {...registerSignup("username")}
-                                        error={signupErrors.username?.message}
+                                        {...registerForm.getInputProps("username")}
                                         disabled={isLoading}
                                     />
 
@@ -217,8 +186,7 @@ export function AuthForm({ type }: AuthFormProps) {
                                         label="Email"
                                         placeholder="example@mail.com"
                                         radius="md"
-                                        {...registerSignup("email")}
-                                        error={signupErrors.email?.message}
+                                        {...registerForm.getInputProps("email")}
                                         disabled={isLoading}
                                     />
 
@@ -226,12 +194,7 @@ export function AuthForm({ type }: AuthFormProps) {
                                         label="Пароль"
                                         placeholder="Ваш пароль"
                                         radius="md"
-                                        {...registerSignup("password")}
-                                        error={signupErrors.password?.message}
-                                        onChange={() => {
-                                            if (password)
-                                                trigger("passwordConfirm");
-                                        }}
+                                        {...registerForm.getInputProps("password")}
                                         disabled={isLoading}
                                     />
 
@@ -239,16 +202,14 @@ export function AuthForm({ type }: AuthFormProps) {
                                         label="Подтверждение пароля"
                                         placeholder="Повторите пароль"
                                         radius="md"
-                                        {...registerSignup("passwordConfirm")}
-                                        error={signupErrors.passwordConfirm?.message}
+                                        {...registerForm.getInputProps("passwordConfirm")}
                                         disabled={isLoading}
                                     />
 
                                     <Checkbox
                                         mt="md"
                                         label="Я принимаю условия использования и политику конфиденциальности"
-                                        {...registerSignup("agreement")}
-                                        error={signupErrors.agreement?.message}
+                                        {...registerForm.getInputProps("agreement", { type: "checkbox" })}
                                         disabled={isLoading}
                                     />
                                 </Stack>

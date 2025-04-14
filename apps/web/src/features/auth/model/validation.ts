@@ -1,70 +1,49 @@
-import { Type } from "@sinclair/typebox";
-import { TypeCompiler } from "@sinclair/typebox/compiler";
-import { DefaultErrorFunction, SetErrorFunction } from "@sinclair/typebox/errors";
+import { z } from "zod";
 
-SetErrorFunction((error) => {
-    return error?.schema?.errorMessage ?? DefaultErrorFunction(error);
+export const loginSchema = z.object({
+    email: z.string()
+        .min(1, "Пожалуйста, введите email")
+        .email("Пожалуйста, введите корректный email адрес"),
+    password: z.string()
+        .min(1, "Пароль не может быть пустым"),
+    rememberMe: z.boolean().optional(),
 });
 
-const EMAIL_PATTERN = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$";
-const PASSWORD_PATTERN = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)[a-zA-Z\\d]{8,}$";
-const USERNAME_PATTERN = "^[a-zA-Z0-9_]{3,20}$";
-
-export const loginSchema = Type.Object({
-    email: Type.String({
-        pattern: EMAIL_PATTERN,
-        errorMessage: "Пожалуйста, введите корректный email адрес",
-    }),
-    password: Type.String({
-        minLength: 1,
-        errorMessage: "Пароль не может быть пустым",
-    }),
-    rememberMe: Type.Optional(Type.Boolean()),
+export const registerSchema = z.object({
+    name: z.string()
+        .min(1, "Имя не может быть пустым"),
+    surname: z.string()
+        .min(1, "Фамилия не может быть пустой"),
+    username: z.string()
+        .min(3, "Имя пользователя должно содержать минимум 3 символа")
+        .max(20, "Имя пользователя должно содержать максимум 20 символов")
+        .refine(val => /^\w+$/.test(val), "Имя пользователя может содержать только буквы, цифры и _"),
+    email: z.string()
+        .min(1, "Пожалуйста, введите email")
+        .email("Пожалуйста, введите корректный email адрес"),
+    password: z.string()
+        .min(8, "Пароль должен содержать минимум 8 символов")
+        .refine(
+            val => /[A-Z]/.test(val),
+            "Пароль должен содержать хотя бы одну заглавную букву",
+        )
+        .refine(
+            val => /[a-z]/.test(val),
+            "Пароль должен содержать хотя бы одну строчную букву",
+        )
+        .refine(
+            val => /\d/.test(val),
+            "Пароль должен содержать хотя бы одну цифру",
+        ),
+    passwordConfirm: z.string(),
+    agreement: z.boolean(),
+}).refine(data => data.password === data.passwordConfirm, {
+    message: "Пароли должны совпадать",
+    path: ["passwordConfirm"],
+}).refine(data => data.agreement === true, {
+    message: "Вы должны согласиться с условиями использования",
+    path: ["agreement"],
 });
 
-export const registerSchema = Type.Object({
-    name: Type.String({
-        minLength: 1,
-        errorMessage: "Имя не может быть пустым",
-    }),
-    surname: Type.String({
-        minLength: 1,
-        errorMessage: "Фамилия не может быть пустой",
-    }),
-    username: Type.String({
-        pattern: USERNAME_PATTERN,
-        errorMessage: "Имя пользователя должно содержать от 3 до 20 символов (буквы, цифры и _)",
-    }),
-    email: Type.String({
-        pattern: EMAIL_PATTERN,
-        errorMessage: "Пожалуйста, введите корректный email адрес",
-    }),
-    password: Type.String({
-        pattern: PASSWORD_PATTERN,
-        errorMessage: "Пароль должен содержать минимум 8 символов, включая заглавную букву, строчную букву и цифру",
-    }),
-    passwordConfirm: Type.String({
-        errorMessage: "Пароли должны совпадать",
-    }),
-    agreement: Type.Boolean({
-        // The TypeBox const/enum validation might not be working as expected
-        // We'll handle this validation explicitly in the form submission handler
-        errorMessage: "Вы должны согласиться с условиями использования",
-    }),
-});
-
-// Custom schema for password confirmation equality
-export const validatePasswordConfirmation = (data: any) => {
-    if (data.password !== data.passwordConfirm) {
-        return {
-            passwordConfirm: "Пароли должны совпадать",
-        };
-    }
-    return {};
-};
-
-export type LoginFormType = typeof loginSchema.static;
-export type RegisterFormType = typeof registerSchema.static;
-
-export const loginCheck = TypeCompiler.Compile(loginSchema);
-export const registerCheck = TypeCompiler.Compile(registerSchema);
+export type LoginFormType = z.infer<typeof loginSchema>;
+export type RegisterFormType = z.infer<typeof registerSchema>;
