@@ -44,9 +44,6 @@ export function registerSocketHandlers(fastify: FastifyInstance): void {
                     username: socket.data.user?.username || "",
                 });
 
-                // Mark user as active in this channel
-                await fastify.channelService.trackUserActivity(channelId, userId);
-
                 callback(true);
             }
             catch (error) {
@@ -66,11 +63,11 @@ export function registerSocketHandlers(fastify: FastifyInstance): void {
                 }
 
                 // Notify other users that this user left
-                socket.to(`channel:${channelId}`).emit("channel:left", {
-                    channelId,
-                    userId,
-                    username: socket.data.user?.username || "",
-                });
+                // socket.to(`channel:${channelId}`).emit("channel:left", {
+                //     channelId,
+                //     userId,
+                //     username: socket.data.user?.username || "",
+                // });
 
                 callback(true);
             }
@@ -127,22 +124,7 @@ export function registerSocketHandlers(fastify: FastifyInstance): void {
 
         // Handle disconnect and cleanup
         socket.on("disconnect", async () => {
-            try {
-                // Update user status to offline in all joined channels
-                if (socket.data.joinedChannels) {
-                    for (const channelId of socket.data.joinedChannels) {
-                        socket.to(`channel:${channelId}`).emit("user:activity", {
-                            userId,
-                            username: socket.data.user?.username || "",
-                            status: "offline",
-                            channelId,
-                        });
-                    }
-                }
-            }
-            catch (error) {
-                fastify.log.error(error, "Error handling disconnect");
-            }
+
         });
     });
 }

@@ -9,6 +9,7 @@ import { fileURLToPath } from "node:url";
 import adminAuthPlugin from "./infra/plugins/admin-auth.js";
 import authPlugin from "./infra/plugins/auth.js";
 import oauthPlugin from "./infra/plugins/oauth.js";
+import userActivityTrackerPlugin from "./infra/plugins/user-activity-tracker.js";
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 
@@ -24,6 +25,7 @@ const userModule: FastifyPluginAsync = async (fastify) => {
     // Register user services first (they are dependencies for auth plugins)
     await fastify.register(autoLoad, {
         dir: join(__dirname, "infra/services"),
+        ignorePattern: /user-activity-service\.ts/,
         forceESM: true,
     });
 
@@ -31,6 +33,7 @@ const userModule: FastifyPluginAsync = async (fastify) => {
     await fastify.register(authPlugin);
     await fastify.register(adminAuthPlugin);
     await fastify.register(oauthPlugin);
+    await fastify.register(userActivityTrackerPlugin);
 
     // Register regular user routes (excluding admin routes)
     await fastify.register(autoLoad, {

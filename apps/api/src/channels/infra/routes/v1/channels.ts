@@ -495,32 +495,6 @@ const routes: FastifyPluginAsyncZod = async function (fastify): Promise<void> {
     });
 
     /**
-     * Track user activity in channel
-     */
-    fastify.post("/channels/:channelId/activity", {
-        config: {
-            auth: true,
-        },
-        schema: {
-            tags: ["Channels", "Activity"],
-            description: "Track user activity in channel",
-            params: ChannelIdParam,
-            response: {
-                204: NoContent,
-                ...ChannelErrorResponses,
-            },
-            security: [{ cookieAuth: [] }],
-        },
-    }, async (request, reply) => {
-        await fastify.channelService.trackUserActivity(
-            request.params.channelId,
-            request.user!.id,
-        );
-
-        return reply.status(204).send();
-    });
-
-    /**
      * Get active users in channel
      */
     fastify.get("/channels/:channelId/active-users", {
