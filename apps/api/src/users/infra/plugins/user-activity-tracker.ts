@@ -36,12 +36,10 @@ const userActivityTrackerPlugin: FastifyPluginAsync = async (fastify) => {
                     return;
                 }
 
-                // Update user activity status
-                fastify.log.info(`Marking user ${request.user.id} as active`);
                 try {
                     await userActivityService.markUserActive(request.user.id);
-                    const count = await userActivityService.countActiveUsers();
-                    fastify.log.info(`Successfully marked user as active. Total active users: ${count}`);
+                    // const count = await userActivityService.countActiveUsers();
+                    // fastify.log.info(`Successfully marked user as active. Total active users: ${count}`);
                 }
                 catch (error) {
                     fastify.log.error(error, `Failed to mark user ${request.user.id} as active`);
