@@ -32,6 +32,20 @@
     pointer-events: none;
 }
 
+/* Styles for current user's messages */
+.ownMessage {
+    position: relative;
+}
+
+.ownMessage :global(.mantine-Paper-root) {
+    background-color: rgba(242, 128, 67, 0.1); /* brand-orange with transparency */
+    border-left: 3px solid var(--mantine-color-brand-orange-6);
+}
+
+.ownMessage :global(.mantine-Avatar-root) {
+    border: 0px solid var(--mantine-color-brand-orange-6);
+}
+
 .dateDivider {
     margin: 16px 0;
 }
@@ -41,6 +55,11 @@
     justify-content: center;
     padding: 10px 0;
     margin-bottom: 8px;
+}
+
+.typingIndicator {
+    padding: 4px 8px;
+    margin-top: 8px;
 }
 
 .newMessagesBanner {

@@ -5,6 +5,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useChannelMembersStore } from "#/features/channel-members";
 import { useChannelMessages, useChannelWebsocket, useMessageActions, useMessages } from "#/features/channel-messages";
 import { useChannels } from "#/features/channels";
+import { useMessagePermissionsStore } from "#/features/channel-messages/model/permissions";
+import { useAuthStore } from "#/features/auth";
 import { MessageInput } from "#/features/message-input";
 import { getUserAvatarUrl } from "#/shared/lib/avatar";
 import { ChannelHeader } from "#/widgets/channel-header";
@@ -26,6 +28,10 @@ function ChannelChatPage() {
     const messages = useMessages();
     const { getChannelMessages, isLoading: isMessagesLoading, nextCursor } = useChannelMessages();
     const messageActions = useMessageActions();
+    
+    // Get user info from auth store
+    const { user } = useAuthStore();
+    const currentUserId = user?.id || "";
 
     // Get WebSocket functionality
     const {
@@ -45,19 +51,22 @@ function ChannelChatPage() {
         stopActiveUsersPolling,
         isUserActive,
     } = useChannelMembersStore();
+    
+    // Get message permissions
+    const { updatePermissions } = useMessagePermissionsStore();
 
     const [hasMoreMessages, setHasMoreMessages] = useState(true);
     const [replyToMessage, setReplyToMessage] = useState<MessageType | undefined>(undefined);
     const [showMembersList, setShowMembersList] = useState(false);
 
-    // Current user (in a real app, get the current user from auth)
-    const currentUserId = "current-user";
-
     // Load initial messages and channel members
     useEffect(() => {
         if (channelId) {
             getChannelMessages(channelId);
-            fetchChannelMembers(channelId);
+            fetchChannelMembers(channelId).then(() => {
+                // Update permissions when members are loaded
+                updatePermissions();
+            });
             startActiveUsersPolling(channelId);
         }
 
@@ -65,7 +74,7 @@ function ChannelChatPage() {
         return () => {
             stopActiveUsersPolling();
         };
-    }, [channelId, getChannelMessages, fetchChannelMembers, startActiveUsersPolling, stopActiveUsersPolling]);
+    }, [channelId, getChannelMessages, fetchChannelMembers, startActiveUsersPolling, stopActiveUsersPolling, updatePermissions]);
 
     // Update hasMoreMessages when nextCursor changes
     useEffect(() => {
@@ -241,6 +250,7 @@ function ChannelChatPage() {
                         <MessageList
                             messages={messages}
                             currentUserId={currentUserId}
+                            channelId={channelId}
                             onReply={handleReply}
                             onEdit={handleEditMessage}
                             onDelete={handleDeleteMessage}

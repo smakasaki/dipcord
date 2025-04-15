@@ -3,6 +3,9 @@ import type { MessageType } from "#/entities/message";
 import { Button, Divider, Group, ScrollArea, Text } from "@mantine/core";
 import { Message as MessageComponent } from "#/entities/message";
 import { useEffect, useRef, useState } from "react";
+import { useMessagePermissionsStore } from "#/features/channel-messages";
+import { useChannelMembersStore } from "#/features/channel-members";
+import { useMessagesStore } from "#/features/channel-messages";
 
 import styles from "./message-list.module.css";
 
@@ -14,9 +17,10 @@ type MessageGroup = {
 type MessageListProps = {
     messages: MessageType[];
     currentUserId: string;
+    channelId: string;
     onReply: (message: MessageType) => void;
-    onEdit: (messageId: string, content: string) => void;
-    onDelete: (messageId: string) => void;
+    onEdit?: (messageId: string, content: string) => void;
+    onDelete?: (messageId: string) => void;
     onReact: (messageId: string) => void;
     onLoadMore: () => Promise<boolean>;
     hasMoreMessages: boolean;
@@ -27,6 +31,7 @@ type MessageListProps = {
 export function MessageList({
     messages,
     currentUserId,
+    channelId,
     onReply,
     onEdit,
     onDelete,
@@ -45,6 +50,21 @@ export function MessageList({
     const [previousMessagesLength, setPreviousMessagesLength] = useState(0);
     const lastScrollPositionRef = useRef<number>(0);
     const firstVisibleMessageRef = useRef<string | null>(null);
+    
+    // Get channel permissions
+    const { fetchChannelMembers } = useChannelMembersStore();
+    const { updatePermissions } = useMessagePermissionsStore();
+    const { updateMessage, deleteMessage } = useMessagesStore();
+
+    // Load channel members and update permissions when channel changes
+    useEffect(() => {
+        if (channelId) {
+            fetchChannelMembers(channelId).then(() => {
+                // Update permissions based on channel members
+                updatePermissions();
+            });
+        }
+    }, [channelId, fetchChannelMembers, updatePermissions]);
 
     // Group messages by date
     const messageGroups = groupMessagesByDate(messages);
@@ -176,6 +196,30 @@ export function MessageList({
             });
         }
     };
+    
+    // Handler for editing messages
+    const handleEditMessage = async (messageId: string, content: string) => {
+        try {
+            await updateMessage(messageId, content);
+            if (onEdit) {
+                onEdit(messageId, content);
+            }
+        } catch (error) {
+            console.error("Failed to edit message", error);
+        }
+    };
+    
+    // Handler for deleting messages
+    const handleDeleteMessage = async (messageId: string) => {
+        try {
+            await deleteMessage(messageId);
+            if (onDelete) {
+                onDelete(messageId);
+            }
+        } catch (error) {
+            console.error("Failed to delete message", error);
+        }
+    };
 
     return (
         <div className={styles.container}>
@@ -220,11 +264,16 @@ export function MessageList({
                                     && prevMessage.author?.id === message.author?.id
                                     && (new Date(message.timestamp).getTime()
                                         - new Date(prevMessage.timestamp).getTime()) < 5 * 60 * 1000;
+                                
+                                const isCurrentUser = message.author.id === currentUserId;
+                                const messageClass = isCurrentUser 
+                                    ? `${styles.message} ${styles.ownMessage}` 
+                                    : isAuthorSame ? styles.continuedMessage : styles.message;
 
                                 return (
                                     <div
                                         key={message.id}
-                                        className={isAuthorSame ? styles.continuedMessage : styles.message}
+                                        className={messageClass}
                                         ref={(el) => {
                                             if (el)
                                                 messageRefs.current[message.id] = el;
@@ -232,10 +281,10 @@ export function MessageList({
                                     >
                                         <MessageComponent
                                             message={message}
-                                            isOwnMessage={message.author.id === currentUserId}
+                                            isOwnMessage={isCurrentUser}
                                             onReply={() => onReply(message)}
-                                            onEdit={content => onEdit(message.id, content)}
-                                            onDelete={() => onDelete(message.id)}
+                                            onEdit={content => handleEditMessage(message.id, content)}
+                                            onDelete={() => handleDeleteMessage(message.id)}
                                             onReact={() => onReact(message.id)}
                                             onGoToMessage={scrollToMessage}
                                         />
@@ -264,7 +313,7 @@ export function MessageList({
                     className={styles.newMessagesBanner}
                     onClick={scrollToBottom}
                     variant="light"
-                    color="orange"
+                    color="brand-orange"
                 >
                     New messages
                 </Button>

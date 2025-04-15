@@ -52,7 +52,7 @@
     padding: 8px;
     margin-bottom: 8px;
     border-radius: 4px;
-    border-left: 2px solid #f06418;
+    border-left: 2px solid var(--mantine-color-brand-orange-6);
 }
 
 .clickableReply {
@@ -65,11 +65,11 @@
 }
 
 .clickableReply:focus-visible {
-    outline: 2px solid var(--mantine-color-blue-5);
+    outline: 2px solid var(--mantine-color-brand-orange-5);
 }
 
 .replyUsername {
-    color: #f06418;
+    color: var(--mantine-color-brand-orange-6);
     font-weight: 500;
 }
 

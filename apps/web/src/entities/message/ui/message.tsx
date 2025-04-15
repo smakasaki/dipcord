@@ -2,6 +2,7 @@ import { ActionIcon, Avatar, Badge, Group, Paper, Text, Tooltip } from "@mantine
 import { IconEdit, IconMessageForward, IconMoodSmile, IconTrash } from "@tabler/icons-react";
 import { getUserAvatarUrl } from "#/shared/lib/avatar";
 import { useState } from "react";
+import { useMessagePermissionsStore } from "#/features/channel-messages/model/permissions";
 
 import type { Message as MessageType } from "../model/types";
 
@@ -27,6 +28,10 @@ export function Message({
     onGoToMessage,
 }: MessageProps) {
     const [showActions, setShowActions] = useState(false);
+    const { canEditMessage, canDeleteMessage } = useMessagePermissionsStore();
+
+    const canEdit = canEditMessage(message.author.id);
+    const canDelete = canDeleteMessage(message.author.id);
 
     const handleReply = () => onReply(message.id);
     const handleEdit = () => onEdit(message.id, message.content);
@@ -35,6 +40,9 @@ export function Message({
 
     // Get avatar URL (use Dicebear as fallback if no custom avatar)
     const avatarUrl = message.author.avatar || getUserAvatarUrl(message.author.id);
+    
+    // Use brand-orange color for buttons when it's the user's own message
+    const actionColor = isOwnMessage ? "brand-orange" : "gray";
 
     return (
         <Paper
@@ -47,7 +55,7 @@ export function Message({
 
                 <div className={styles.messageContent}>
                     <Group gap="xs" className={styles.messageHeader}>
-                        <Text fw={500} size="sm" c="dimmed">
+                        <Text fw={500} size="sm" c={isOwnMessage ? "brand-orange.7" : "dimmed"}>
                             {message.author.name && message.author.surname
                                 ? `${message.author.name} ${message.author.surname}`
                                 : message.author.username}
@@ -141,28 +149,29 @@ export function Message({
                 {showActions && (
                     <div className={styles.messageActions}>
                         <Tooltip label="Reply">
-                            <ActionIcon onClick={handleReply} variant="subtle" color="gray">
+                            <ActionIcon onClick={handleReply} variant="subtle" color={actionColor}>
                                 <IconMessageForward size={16} />
                             </ActionIcon>
                         </Tooltip>
 
-                        {isOwnMessage && (
-                            <>
-                                <Tooltip label="Edit">
-                                    <ActionIcon onClick={handleEdit} variant="subtle" color="gray">
-                                        <IconEdit size={16} />
-                                    </ActionIcon>
-                                </Tooltip>
-                                <Tooltip label="Delete">
-                                    <ActionIcon onClick={handleDelete} variant="subtle" color="gray">
-                                        <IconTrash size={16} />
-                                    </ActionIcon>
-                                </Tooltip>
-                            </>
+                        {canEdit && (
+                            <Tooltip label="Edit">
+                                <ActionIcon onClick={handleEdit} variant="subtle" color={actionColor}>
+                                    <IconEdit size={16} />
+                                </ActionIcon>
+                            </Tooltip>
+                        )}
+                        
+                        {canDelete && (
+                            <Tooltip label="Delete">
+                                <ActionIcon onClick={handleDelete} variant="subtle" color={actionColor}>
+                                    <IconTrash size={16} />
+                                </ActionIcon>
+                            </Tooltip>
                         )}
 
                         <Tooltip label="React">
-                            <ActionIcon onClick={handleReact} variant="subtle" color="gray">
+                            <ActionIcon onClick={handleReact} variant="subtle" color={actionColor}>
                                 <IconMoodSmile size={16} />
                             </ActionIcon>
                         </Tooltip>
