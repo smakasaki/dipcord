@@ -1,45 +1,37 @@
-import { Type } from "@sinclair/typebox";
+import { z } from "zod";
 
 import { ID, PaginationResult, StandardErrorResponses, UUID } from "../common/index.js";
 import { ChannelBase, ChannelPermissionsSchema, InviteBase, MemberBase } from "./types.js";
 
-export const ChannelResponse = Type.Intersect([
-    ID,
-    ChannelBase,
-    Type.Object({
-        createdAt: Type.String({ format: "date-time" }),
-        updatedAt: Type.String({ format: "date-time" }),
-    }),
-]);
+export const ChannelResponse = ID.extend({
+    ...ChannelBase.shape,
+    createdAt: z.string().datetime(),
+    updatedAt: z.string().datetime(),
+});
 
-export const MemberResponse = Type.Intersect([
-    ID,
-    MemberBase,
-    Type.Object({
-        channelId: UUID,
-        permissions: ChannelPermissionsSchema,
-        joinedAt: Type.String({ format: "date-time" }),
-        user: Type.Object({
-            id: UUID,
-            name: Type.String(),
-            surname: Type.String(),
-            username: Type.String(),
-        }),
+export const MemberResponse = ID.extend({
+    ...MemberBase.shape,
+    channelId: UUID,
+    permissions: ChannelPermissionsSchema,
+    joinedAt: z.string().datetime(),
+    user: z.object({
+        id: UUID,
+        name: z.string(),
+        surname: z.string(),
+        username: z.string(),
     }),
-]);
+});
 
-export const InviteResponse = Type.Intersect([
-    ID,
-    InviteBase,
-    Type.Object({
-        channelId: UUID,
-        createdByUserId: UUID,
-        inviteCode: Type.String(),
-        isUsed: Type.Boolean(),
-        usedByUserId: Type.Optional(UUID),
-        createdAt: Type.String({ format: "date-time" }),
-    }),
-]);
+export const InviteResponse = ID.extend({
+    ...InviteBase.shape,
+    channelId: UUID,
+    createdByUserId: UUID,
+    inviteCode: z.string(),
+    isUsed: z.boolean(),
+    usedByUserId: UUID.nullable(),
+    expiresAt: z.string().datetime().nullable(),
+    createdAt: z.string().datetime(),
+});
 
 export const PaginatedChannelsResponse = PaginationResult(ChannelResponse);
 export const PaginatedMembersResponse = PaginationResult(MemberResponse);

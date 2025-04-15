@@ -15,5 +15,6 @@ export default fp(async (app: FastifyInstance) => {
         dir: join(__dirname, "plugins"),
         forceESM: true,
         encapsulate: false,
+        ignorePattern: /websockets\.ts/,
     });
 });

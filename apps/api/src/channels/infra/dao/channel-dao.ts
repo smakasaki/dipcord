@@ -1,8 +1,7 @@
+import { count, eq, inArray } from "drizzle-orm";
+
 import type { IChannelRepository } from "#channels/app/channel-repo.js";
 import type { Channel, CreateChannelData, UpdateChannelData } from "#channels/app/models.js";
-
-import { count, eq } from "drizzle-orm";
-
 import type { PaginatedResult, Pagination, SortBy } from "#commons/app/index.js";
 import type { Database } from "#commons/infra/plugins/database.js";
 
@@ -88,6 +87,48 @@ export class ChannelDao implements IChannelRepository {
         }
 
         return this.mapToDomainChannel(result[0]);
+    }
+
+    /**
+     * Find channels by IDs with pagination and sorting
+     * @param ids Array of channel IDs
+     * @param pagination Pagination parameters
+     * @param sortBy Sort configuration
+     * @returns Paginated channels
+     */
+    async findByIds(
+        ids: string[],
+        pagination: Pagination,
+        sortBy: SortBy<Channel>,
+    ): Promise<PaginatedResult<Channel>> {
+        if (ids.length === 0) {
+            return {
+                count: 0,
+                data: [],
+            };
+        }
+
+        // Count total matching channels
+        const countResult = await this.db
+            .select({ value: count() })
+            .from(channels)
+            .where(inArray(channels.id, ids));
+
+        const total = countResult[0]?.value ?? 0;
+
+        // Get paginated and sorted channels
+        const result = await this.db
+            .select()
+            .from(channels)
+            .where(inArray(channels.id, ids))
+            .limit(pagination.limit)
+            .offset(pagination.offset)
+            .orderBy(...buildSortBy(sortBy));
+
+        return {
+            count: total,
+            data: result.map(channel => this.mapToDomainChannel(channel)),
+        };
     }
 
     /**

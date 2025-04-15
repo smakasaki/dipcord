@@ -1,27 +1,17 @@
 /* eslint-disable node/no-process-env */
-import { Type } from "@sinclair/typebox";
-import { TypeCompiler } from "@sinclair/typebox/compiler";
+import { z } from "zod";
 
 // Database configuration schema
-const DatabaseConfigSchema = Type.Object({
-    host: Type.String(),
-    port: Type.Number(),
-    username: Type.String(),
-    password: Type.String(),
-    database: Type.String(),
+const DatabaseConfigSchema = z.object({
+    host: z.string(),
+    port: z.number(),
+    username: z.string(),
+    password: z.string(),
+    database: z.string(),
 });
 
-// Compiler for validation
-const SchemaCompiler = TypeCompiler.Compile(DatabaseConfigSchema);
-
 // Database configuration type
-export type DatabaseConfig = {
-    host: string;
-    port: number;
-    username: string;
-    password: string;
-    database: string;
-};
+export type DatabaseConfig = z.infer<typeof DatabaseConfigSchema>;
 
 // Build database configuration from environment variables
 export function buildDbConfig(): DatabaseConfig {
@@ -40,12 +30,13 @@ export function buildDbConfig(): DatabaseConfig {
     // }
 
     // Validate configuration
-    if (SchemaCompiler.Check(config)) {
+    const validationResult = DatabaseConfigSchema.safeParse(config);
+    if (validationResult.success) {
         return config;
     }
 
     // Throw error if configuration is invalid
     throw new Error(
-        `Invalid database configuration: ${JSON.stringify([...SchemaCompiler.Errors(config)])}`,
+        `Invalid database configuration: ${JSON.stringify(validationResult.error.format())}`,
     );
 }

@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 
 import type { PaginatedResult, Pagination, SortBy } from "#commons/app/index.js";
+import type { UserActivityService } from "#users/infra/services/user-activity-service.js";
 
 import {
     BadRequestError,
@@ -10,7 +11,6 @@ import {
     UserNotFoundError,
 } from "#commons/app/errors.js";
 
-import type { ActiveUsersService } from "./active-users-service.js";
 import type { IChannelInviteRepository } from "./channel-invite-repo.js";
 import type { IChannelMemberRepository } from "./channel-member-repo.js";
 import type { IChannelRepository } from "./channel-repo.js";
@@ -34,8 +34,13 @@ export class ChannelService {
         private readonly channelRepository: IChannelRepository,
         private readonly channelMemberRepository: IChannelMemberRepository,
         private readonly channelInviteRepository: IChannelInviteRepository,
-        private readonly activeUsersService: ActiveUsersService,
+        private readonly activeUsersService: UserActivityService,
     ) {}
+
+    async isUserChannelMember(userId: string, channelId: string): Promise<boolean> {
+        const membership = await this.channelMemberRepository.findByChannelAndUser(channelId, userId);
+        return !!membership;
+    }
 
     async createChannel(data: CreateChannelData, creatorId: string): Promise<{
         channel: Channel;
@@ -72,6 +77,27 @@ export class ChannelService {
             throw new NotFoundError(`Channel with ID ${id} not found`);
         }
         return channel;
+    }
+
+    async getUserChannels(
+        userId: string,
+        pagination: Pagination,
+        sortBy: SortBy<Channel>,
+    ): Promise<PaginatedResult<Channel>> {
+        const channelIds = await this.channelMemberRepository.getChannelsByUserId(userId);
+
+        if (channelIds.length === 0) {
+            return {
+                count: 0,
+                data: [],
+            };
+        }
+
+        return this.channelRepository.findByIds(
+            channelIds,
+            pagination,
+            sortBy,
+        );
     }
 
     async getAllChannels(
@@ -326,9 +352,6 @@ export class ChannelService {
             throw new PermissionDeniedError("You don't have permission to remove members");
         }
 
-        // Remove active status from Redis
-        await this.activeUsersService.markUserInactiveInChannel(member.channelId, member.userId);
-
         // Delete the member
         const removedMember = await this.channelMemberRepository.delete(memberId);
         if (!removedMember) {
@@ -498,24 +521,23 @@ export class ChannelService {
         return deletedInvite;
     }
 
-    async trackUserActivity(channelId: string, userId: string): Promise<void> {
-        // Check if channel exists
-        await this.getChannelById(channelId);
-
-        // Check if user is a member of the channel
-        const membership = await this.channelMemberRepository.findByChannelAndUser(channelId, userId);
-        if (!membership) {
-            throw new UserNotFoundError(`User ${userId} is not a member of channel ${channelId}`);
-        }
-
-        // Update active status in Redis
-        await this.activeUsersService.markUserActiveInChannel(channelId, userId);
-    }
-
     async getActiveUsers(channelId: string): Promise<string[]> {
         // Check if channel exists
         await this.getChannelById(channelId);
 
-        return this.activeUsersService.getActiveUsersInChannel(channelId, false) as Promise<string[]>;
+        // Get all members in the channel
+        const members = await this.channelMemberRepository.findByChannelId(
+            channelId,
+            { offset: 0, limit: 1000 }, // Using a large limit to get all members
+            [["id", "asc"]],
+        );
+
+        const memberUserIds = members.data.map(member => member.userId);
+
+        // Get all active users
+        const activeUsers = await this.activeUsersService.getAllActiveUsers() as string[];
+
+        // Return the intersection - channel members who are active
+        return memberUserIds.filter(userId => activeUsers.includes(userId));
     }
 }

@@ -1,4 +1,4 @@
-import type { FastifyPluginAsyncTypebox } from "@fastify/type-provider-typebox";
+import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
 
 import {
     AddMemberRequest,
@@ -15,11 +15,13 @@ import {
     PaginatedChannelsResponse,
     PaginatedInvitesResponse,
     PaginatedMembersResponse,
+    Pagination,
+    SortQuery,
     UpdateChannelRequest,
     UpdateMemberPermissionsRequest,
     UpdateMemberRoleRequest,
 } from "@dipcord/schema";
-import { Type } from "@sinclair/typebox";
+import { z } from "zod";
 
 import { mapChannelInviteToResponse, mapChannelMemberToResponse, mapChannelToResponse } from "#channels/infra/utils/channel-mapper.js";
 import { decodeSort, validateSortFields } from "#commons/infra/http/utils/decode-sort.js";
@@ -27,7 +29,42 @@ import { decodeSort, validateSortFields } from "#commons/infra/http/utils/decode
 /**
  * Channel routes
  */
-const routes: FastifyPluginAsyncTypebox = async function (fastify): Promise<void> {
+const routes: FastifyPluginAsyncZod = async function (fastify): Promise<void> {
+    /**
+     * Get channels where the current user is a member
+     */
+    fastify.get("/users/me/channels", {
+        config: {
+            auth: true,
+        },
+        schema: {
+            tags: ["Channels", "Users"],
+            description: "Get channels where the authenticated user is a member",
+            querystring: Pagination.merge(SortQuery),
+            response: {
+                200: PaginatedChannelsResponse,
+                ...ChannelErrorResponses,
+            },
+            security: [{ cookieAuth: [] }],
+        },
+    }, async (request) => {
+        const { offset, limit, sort } = request.query;
+
+        const validSortFields = ["id", "name", "createdAt", "updatedAt"];
+        const validatedSort = validateSortFields(sort || ["createdAt.desc"], validSortFields);
+
+        const result = await fastify.channelService.getUserChannels(
+            request.user!.id,
+            { offset: offset ?? 0, limit: limit ?? 20 },
+            decodeSort(validatedSort),
+        );
+
+        return {
+            count: result.count,
+            data: result.data.map(mapChannelToResponse),
+        };
+    });
+
     /**
      * Create new channel
      */
@@ -64,11 +101,7 @@ const routes: FastifyPluginAsyncTypebox = async function (fastify): Promise<void
         schema: {
             tags: ["Channels"],
             description: "Get all channels with pagination and sorting",
-            querystring: Type.Object({
-                offset: Type.Optional(Type.Number({ default: 0 })),
-                limit: Type.Optional(Type.Number({ default: 10 })),
-                sort: Type.Optional(Type.Array(Type.String(), { default: ["createdAt.desc"] })),
-            }),
+            querystring: Pagination.merge(SortQuery),
             response: {
                 200: PaginatedChannelsResponse,
                 ...ChannelErrorResponses,
@@ -179,11 +212,7 @@ const routes: FastifyPluginAsyncTypebox = async function (fastify): Promise<void
             tags: ["Channels", "Members"],
             description: "Get channel members with pagination and sorting",
             params: ChannelIdParam,
-            querystring: Type.Object({
-                offset: Type.Optional(Type.Number({ default: 0 })),
-                limit: Type.Optional(Type.Number({ default: 10 })),
-                sort: Type.Optional(Type.Array(Type.String(), { default: ["joinedAt.asc"] })),
-            }),
+            querystring: Pagination.merge(SortQuery),
             response: {
                 200: PaginatedMembersResponse,
                 ...ChannelErrorResponses,
@@ -354,11 +383,7 @@ const routes: FastifyPluginAsyncTypebox = async function (fastify): Promise<void
             tags: ["Channels", "Invites"],
             description: "Get channel invites with pagination and sorting",
             params: ChannelIdParam,
-            querystring: Type.Object({
-                offset: Type.Optional(Type.Number({ default: 0 })),
-                limit: Type.Optional(Type.Number({ default: 10 })),
-                sort: Type.Optional(Type.Array(Type.String(), { default: ["createdAt.desc"] })),
-            }),
+            querystring: Pagination.merge(SortQuery),
             response: {
                 200: PaginatedInvitesResponse,
                 ...ChannelErrorResponses,
@@ -451,8 +476,8 @@ const routes: FastifyPluginAsyncTypebox = async function (fastify): Promise<void
         schema: {
             tags: ["Channels", "Invites"],
             description: "Accept channel invite",
-            body: Type.Object({
-                inviteCode: Type.String(),
+            body: z.object({
+                inviteCode: z.string(),
             }),
             response: {
                 200: MemberResponse,
@@ -470,32 +495,6 @@ const routes: FastifyPluginAsyncTypebox = async function (fastify): Promise<void
     });
 
     /**
-     * Track user activity in channel
-     */
-    fastify.post("/channels/:channelId/activity", {
-        config: {
-            auth: true,
-        },
-        schema: {
-            tags: ["Channels", "Activity"],
-            description: "Track user activity in channel",
-            params: ChannelIdParam,
-            response: {
-                204: NoContent,
-                ...ChannelErrorResponses,
-            },
-            security: [{ cookieAuth: [] }],
-        },
-    }, async (request, reply) => {
-        await fastify.channelService.trackUserActivity(
-            request.params.channelId,
-            request.user!.id,
-        );
-
-        return reply.status(204).send();
-    });
-
-    /**
      * Get active users in channel
      */
     fastify.get("/channels/:channelId/active-users", {
@@ -507,8 +506,8 @@ const routes: FastifyPluginAsyncTypebox = async function (fastify): Promise<void
             description: "Get active users in channel",
             params: ChannelIdParam,
             response: {
-                200: Type.Object({
-                    activeUsers: Type.Array(Type.String({ format: "uuid" })),
+                200: z.object({
+                    activeUsers: z.array(z.string().uuid()),
                 }),
                 ...ChannelErrorResponses,
             },

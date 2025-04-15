@@ -1,4 +1,4 @@
-import type { FastifyPluginAsyncTypebox } from "@fastify/type-provider-typebox";
+import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
 
 import {
     AdminErrorResponses,
@@ -8,14 +8,14 @@ import {
     UserResponse,
 } from "@dipcord/schema";
 import { SessionsListResponse } from "@dipcord/schema/auth";
-import { Type } from "@sinclair/typebox";
+import { z } from "zod";
 
 import { mapUserToResponse } from "#users/infra/utils/user-mapper.js";
 
 /**
  * Admin authentication routes
  */
-const routes: FastifyPluginAsyncTypebox = async function (fastify): Promise<void> {
+const routes: FastifyPluginAsyncZod = async function (fastify): Promise<void> {
     /**
      * Get current admin profile
      */
@@ -85,8 +85,8 @@ const routes: FastifyPluginAsyncTypebox = async function (fastify): Promise<void
         schema: {
             tags: ["Admin", "Auth"],
             description: "Terminate a user session (admin only)",
-            params: Type.Object({
-                sessionId: Type.String({ format: "uuid" }),
+            params: z.object({
+                sessionId: z.string().uuid(),
             }),
             response: {
                 200: DeleteSessionResponseSchema,
@@ -145,10 +145,10 @@ const routes: FastifyPluginAsyncTypebox = async function (fastify): Promise<void
             description: "Force password reset for a user (admin only)",
             params: UserIdParam,
             response: {
-                200: Type.Object({
-                    success: Type.Boolean(),
-                    resetToken: Type.String(),
-                    message: Type.String(),
+                200: z.object({
+                    success: z.boolean(),
+                    resetToken: z.string(),
+                    message: z.string(),
                 }),
                 ...AdminErrorResponses,
             },

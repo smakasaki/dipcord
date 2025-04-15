@@ -1,28 +1,28 @@
-import { Type } from "@sinclair/typebox";
+import { z } from "zod";
 
 import { Pagination } from "./pagination.js";
 
-export const SortQuery = Type.Object({
-    sort: Type.Optional(Type.Array(
-        Type.Union([
-            Type.String(),
-            Type.String({ pattern: "^.+\\.(asc|desc)$" }),
-        ]),
-        { default: ["createdAt.desc"] },
-    )),
+export const SortQuery = z.object({
+    sort: z.union([
+        z.string(),
+        z.array(
+            z.union([
+                z.string(),
+                z.string().regex(/^.+\.(asc|desc)$/),
+            ]),
+        ),
+    ])
+        .transform(val => Array.isArray(val) ? val : [val])
+        .default(["createdAt.desc"])
+        .optional(),
 });
 
-export const SearchQuery = Type.Object({
-    query: Type.Optional(Type.String({ minLength: 1 })),
+export const SearchQuery = z.object({
+    query: z.string().min(1).optional(),
 });
 
-export const FilterQuery = Type.Object({
-    filter: Type.Optional(Type.Record(Type.String(), Type.Any())),
+export const FilterQuery = z.object({
+    filter: z.record(z.string(), z.any()).optional(),
 });
 
-export const FullQuery = Type.Intersect([
-    Pagination,
-    SortQuery,
-    SearchQuery,
-    FilterQuery,
-]);
+export const FullQuery = Pagination.merge(SortQuery).merge(SearchQuery).merge(FilterQuery);

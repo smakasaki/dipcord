@@ -1,35 +1,35 @@
-import { Type } from "@sinclair/typebox";
+import { z } from "zod";
 
 import { UUID } from "../common/index.js";
 import { ChannelBase, ChannelRoleEnum, InviteBase } from "./types.js";
 
-export const ChannelIdParam = Type.Object({
+export const ChannelIdParam = z.object({
     channelId: UUID,
 });
 
-export const MemberIdParam = Type.Object({
+export const MemberIdParam = z.object({
     memberId: UUID,
 });
 
-export const InviteIdParam = Type.Object({
+export const InviteIdParam = z.object({
     inviteId: UUID,
 });
 
 export const CreateChannelRequest = ChannelBase;
 
-export const UpdateChannelRequest = Type.Partial(ChannelBase);
+export const UpdateChannelRequest = ChannelBase.partial();
 
-export const AddMemberRequest = Type.Object({
+export const AddMemberRequest = z.object({
     userId: UUID,
-    role: Type.Optional(ChannelRoleEnum),
+    role: ChannelRoleEnum.optional(),
 });
 
-export const UpdateMemberRoleRequest = Type.Object({
+export const UpdateMemberRoleRequest = z.object({
     role: ChannelRoleEnum,
 });
 
-export const UpdateMemberPermissionsRequest = Type.Object({
-    permissions: Type.Record(Type.String(), Type.Boolean()),
+export const UpdateMemberPermissionsRequest = z.object({
+    permissions: z.record(z.string(), z.boolean()),
 });
 
 export const CreateInviteRequest = InviteBase;

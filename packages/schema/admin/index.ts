@@ -1,4 +1,4 @@
-import { Type } from "@sinclair/typebox";
+import { z } from "zod";
 
 import { Session } from "../auth/index.js";
 import {
@@ -9,44 +9,44 @@ import {
     UserRoleEnum,
 } from "../user/index.js";
 
-export const AdminUpdateUserSchema = Type.Object({
-    name: Type.Optional(Type.String()),
-    surname: Type.Optional(Type.String()),
-    email: Type.Optional(Type.String({ format: "email" })),
-    roles: Type.Optional(Type.Array(UserRoleEnum)),
+export const AdminUpdateUserSchema = z.object({
+    name: z.string().optional(),
+    surname: z.string().optional(),
+    email: z.string().email().optional(),
+    roles: z.array(UserRoleEnum).optional(),
 });
 
-export const UserRoleManagementSchema = Type.Object({
-    userId: Type.String({ format: "uuid" }),
+export const UserRoleManagementSchema = z.object({
+    userId: z.string().uuid(),
     role: UserRoleEnum,
 });
 
-export const UserRoleUpdatedSchema = Type.Object({
-    userId: Type.String({ format: "uuid" }),
-    roles: Type.Array(UserRoleEnum),
-    message: Type.String(),
+export const UserRoleUpdatedSchema = z.object({
+    userId: z.string().uuid(),
+    roles: z.array(UserRoleEnum),
+    message: z.string(),
 });
 
-export const UserSessionsListSchema = Type.Object({
-    userId: Type.String({ format: "uuid" }),
-    sessions: Type.Array(Session),
+export const UserSessionsListSchema = z.object({
+    userId: z.string().uuid(),
+    sessions: z.array(Session),
 });
 
-export const DeleteSessionResponseSchema = Type.Object({
-    success: Type.Boolean(),
-    message: Type.String(),
+export const DeleteSessionResponseSchema = z.object({
+    success: z.boolean(),
+    message: z.string(),
 });
 
-export const DeleteAllUserSessionsResponseSchema = Type.Object({
-    deletedCount: Type.Number(),
-    message: Type.String(),
+export const DeleteAllUserSessionsResponseSchema = z.object({
+    deletedCount: z.number(),
+    message: z.string(),
 });
 
-export const AdminStatisticsSchema = Type.Object({
-    totalUsers: Type.Number(),
-    totalActiveSessions: Type.Number(),
-    newUsersThisMonth: Type.Number(),
-    activeSessionsAverage: Type.Number(),
+export const AdminStatisticsSchema = z.object({
+    totalUsers: z.number(),
+    totalActiveSessions: z.number(),
+    newUsersThisMonth: z.number(),
+    activeSessionsAverage: z.number(),
 });
 
 export const AdminErrorResponses = {
@@ -54,10 +54,10 @@ export const AdminErrorResponses = {
     403: ErrorResponse,
 };
 
-export type AdminUpdateUser = typeof AdminUpdateUserSchema.static;
-export type UserRoleManagement = typeof UserRoleManagementSchema.static;
-export type UserRoleUpdated = typeof UserRoleUpdatedSchema.static;
-export type UserSessionsList = typeof UserSessionsListSchema.static;
-export type DeleteSessionResponse = typeof DeleteSessionResponseSchema.static;
-export type DeleteAllUserSessionsResponse = typeof DeleteAllUserSessionsResponseSchema.static;
-export type AdminStatistics = typeof AdminStatisticsSchema.static;
+export type AdminUpdateUser = z.infer<typeof AdminUpdateUserSchema>;
+export type UserRoleManagement = z.infer<typeof UserRoleManagementSchema>;
+export type UserRoleUpdated = z.infer<typeof UserRoleUpdatedSchema>;
+export type UserSessionsList = z.infer<typeof UserSessionsListSchema>;
+export type DeleteSessionResponse = z.infer<typeof DeleteSessionResponseSchema>;
+export type DeleteAllUserSessionsResponse = z.infer<typeof DeleteAllUserSessionsResponseSchema>;
+export type AdminStatistics = z.infer<typeof AdminStatisticsSchema>;

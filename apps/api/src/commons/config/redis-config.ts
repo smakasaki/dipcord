@@ -1,22 +1,14 @@
 /* eslint-disable node/no-process-env */
-import { Type } from "@sinclair/typebox";
-import { TypeCompiler } from "@sinclair/typebox/compiler";
+import { z } from "zod";
 
-const RedisConfigSchema = Type.Object({
-    host: Type.String(),
-    port: Type.Number(),
-    password: Type.Optional(Type.String()),
-    database: Type.Optional(Type.Number()),
+const RedisConfigSchema = z.object({
+    host: z.string(),
+    port: z.number(),
+    password: z.string().optional(),
+    database: z.number().optional(),
 });
 
-const SchemaCompiler = TypeCompiler.Compile(RedisConfigSchema);
-
-export type RedisConfig = {
-    host: string;
-    port: number;
-    password?: string;
-    database?: number;
-};
+export type RedisConfig = z.infer<typeof RedisConfigSchema>;
 
 /**
  * Build Redis configuration from environment variables
@@ -30,11 +22,12 @@ export function buildRedisConfig(): RedisConfig {
         database: process.env.REDIS_DB ? Number(process.env.REDIS_DB) : undefined,
     };
 
-    if (SchemaCompiler.Check(config)) {
+    const validationResult = RedisConfigSchema.safeParse(config);
+    if (validationResult.success) {
         return config;
     }
 
     throw new Error(
-        `Invalid Redis configuration: ${JSON.stringify([...SchemaCompiler.Errors(config)])}`,
+        `Invalid Redis configuration: ${JSON.stringify(validationResult.error.format())}`,
     );
 }

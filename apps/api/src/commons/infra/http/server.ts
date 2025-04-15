@@ -2,12 +2,17 @@
 
 import type { FastifyInstance } from "fastify";
 
+import { PublicUserProfileResponse, UserResponse } from "@dipcord/schema";
 import cookie from "@fastify/cookie";
 import cors from "@fastify/cors";
 import sensible from "@fastify/sensible";
 import swagger from "@fastify/swagger";
 import swaggerUi from "@fastify/swagger-ui";
-import { Type } from "@sinclair/typebox";
+import {
+    createJsonSchemaTransformObject,
+    jsonSchemaTransform,
+} from "fastify-type-provider-zod";
+import { z } from "zod";
 
 import { errorHandler } from "#commons/infra/http/errors/index.js";
 import { buildSessionConfig } from "#users/config/session-config.js";
@@ -47,14 +52,15 @@ export default async function buildServer(app: FastifyInstance) {
                 },
             },
         },
-        // Filter out admin routes from the main Swagger
-        transform: ({ schema, url }) => {
-            // Skip admin routes in the main Swagger
-            // if (url.startsWith("/v1/admin/")) {
-            //     return { schema: { hide: true }, url };
-            // }
-            return { schema, url };
-        },
+        transform: jsonSchemaTransform,
+        transformObject: createJsonSchemaTransformObject({
+            schemas: {
+                // Register your schema references here for OpenAPI
+                UserResponse,
+                PublicUserProfileResponse,
+                // Add more schemas as needed
+            },
+        }),
     });
 
     // Register Swagger UI for API
@@ -72,8 +78,13 @@ export default async function buildServer(app: FastifyInstance) {
     // Register user module
     app.register(import("#users/index.js"));
 
+    app.register(import("#commons/infra/plugins/websockets.js"));
+
     // Register channel module
     app.register(import("#channels/index.js"));
+
+    // Register chat module
+    app.register(import("#chat/index.js"));
 
     // Set global error handler
     app.setErrorHandler(errorHandler);
@@ -84,9 +95,9 @@ export default async function buildServer(app: FastifyInstance) {
             tags: ["Health"],
             description: "Health check endpoint",
             response: {
-                200: Type.Object({
-                    status: Type.String(),
-                    timestamp: Type.String({ format: "date-time" }),
+                200: z.object({
+                    status: z.string(),
+                    timestamp: z.string().datetime(),
                 }),
             },
         },

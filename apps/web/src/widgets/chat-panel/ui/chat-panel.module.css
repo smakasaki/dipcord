@@ -1,0 +1,16 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    background-color: var(--mantine-color-dark-8);
+}
+
+.messagesContainer {
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+}
+
+.inputContainer {
+    margin-top: auto;
+}

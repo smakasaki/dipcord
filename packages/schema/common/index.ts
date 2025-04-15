@@ -1,11 +1,8 @@
-import { Type } from "@sinclair/typebox";
+import { z } from "zod";
 
-export const UUID = Type.String({
-    format: "uuid",
-    description: "UUID identifier",
-});
+export const UUID = z.string().uuid().describe("UUID identifier");
 
-export const ID = Type.Object({
+export const ID = z.object({
     id: UUID,
 });
 
