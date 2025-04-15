@@ -1,4 +1,5 @@
 import { useChannelMembersStore } from "#/features/channel-members";
+import { getUserAvatarUrl } from "#/shared/lib/avatar";
 
 import type { Message, MessageAttachment, MessageResponse } from "./types";
 
@@ -71,6 +72,8 @@ export const mapMessageResponse = (messageData: any): Message => {
         // Добавляем имя и фамилию, если доступны
         name: userFromStore?.name,
         surname: userFromStore?.surname,
+        // Use Dicebear avatar if no custom avatar is available
+        avatar: userFromStore?.avatar || getUserAvatarUrl(messageData.userId),
     };
 
     // Use timestamp if available, otherwise use createdAt

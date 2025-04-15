@@ -6,6 +6,7 @@ import { useChannelMembersStore } from "#/features/channel-members";
 import { useChannelMessages, useChannelWebsocket, useMessageActions, useMessages } from "#/features/channel-messages";
 import { useChannels } from "#/features/channels";
 import { MessageInput } from "#/features/message-input";
+import { getUserAvatarUrl } from "#/shared/lib/avatar";
 import { ChannelHeader } from "#/widgets/channel-header";
 import { MembersSidebar } from "#/widgets/members-sidebar";
 import { MessageList } from "#/widgets/message-list";
@@ -16,18 +17,6 @@ import styles from "./app.$channelId.chat.module.css";
 export const Route = createFileRoute("/app/$channelId/chat")({
     component: ChannelChatPage,
 });
-
-// Mock channel members (temporarily keep these until member API is implemented)
-const mockChannelMembers = [
-    { id: "1", name: "Alex Kim", avatar: "https://i.pravatar.cc/150?u=alex", isOnline: true },
-    { id: "2", name: "Maria Lopez", avatar: "https://i.pravatar.cc/150?u=maria", isOnline: true },
-    { id: "3", name: "John Doe", avatar: "https://i.pravatar.cc/150?u=john", isOnline: false },
-    { id: "4", name: "Sarah Chen", avatar: "https://i.pravatar.cc/150?u=sarah", isOnline: true },
-    { id: "5", name: "Robert Smith", avatar: "https://i.pravatar.cc/150?u=robert", isOnline: false },
-    { id: "6", name: "Emma Johnson", avatar: "https://i.pravatar.cc/150?u=emma", isOnline: true },
-    { id: "7", name: "James Wilson", avatar: "https://i.pravatar.cc/150?u=james", isOnline: false },
-    { id: "8", name: "Olivia Brown", avatar: "https://i.pravatar.cc/150?u=olivia", isOnline: true },
-];
 
 function ChannelChatPage() {
     const { channelId } = Route.useParams();
@@ -47,8 +36,15 @@ function ChannelChatPage() {
         markLastMessageAsRead,
     } = useChannelWebsocket(channelId);
 
-    // Получаем функцию для загрузки членов канала и кеш пользователей
-    const { fetchChannelMembers } = useChannelMembersStore();
+    // Get channel members store functionality
+    const {
+        members,
+        users,
+        fetchChannelMembers,
+        startActiveUsersPolling,
+        stopActiveUsersPolling,
+        isUserActive,
+    } = useChannelMembersStore();
 
     const [hasMoreMessages, setHasMoreMessages] = useState(true);
     const [replyToMessage, setReplyToMessage] = useState<MessageType | undefined>(undefined);
@@ -62,8 +58,14 @@ function ChannelChatPage() {
         if (channelId) {
             getChannelMessages(channelId);
             fetchChannelMembers(channelId);
+            startActiveUsersPolling(channelId);
         }
-    }, [channelId, getChannelMessages, fetchChannelMembers]);
+
+        // Cleanup on unmount or channel change
+        return () => {
+            stopActiveUsersPolling();
+        };
+    }, [channelId, getChannelMessages, fetchChannelMembers, startActiveUsersPolling, stopActiveUsersPolling]);
 
     // Update hasMoreMessages when nextCursor changes
     useEffect(() => {
@@ -205,13 +207,29 @@ function ChannelChatPage() {
         ? "Connected to real-time updates"
         : "Connecting to server...";
 
+    // Prepare members for sidebar display
+    const channelMembers = members.map((member) => {
+        const userInfo = users[member.userId];
+
+        return {
+            id: member.userId,
+            name: userInfo ? `${userInfo.name} ${userInfo.surname}` : member.userId,
+            // Use Dicebear avatar if user doesn't have a custom one
+            avatar: userInfo?.avatar || getUserAvatarUrl(member.userId),
+            isOnline: isUserActive(member.userId),
+        };
+    });
+
+    // Count online members
+    const onlineCount = channelMembers.filter(m => m.isOnline).length;
+
     return (
         <Container fluid className={styles.container}>
             <ChannelHeader
                 channelName={channel.name}
                 channelTopic={channel.description || "Channel discussion"}
-                memberCount={mockChannelMembers.length}
-                onlineCount={mockChannelMembers.filter(m => m.isOnline).length}
+                memberCount={members.length}
+                onlineCount={onlineCount}
                 onToggleMembersList={toggleMembersList}
                 membersListVisible={showMembersList}
                 connectionStatus={connectionStatus}
@@ -248,7 +266,7 @@ function ChannelChatPage() {
                 {showMembersList && (
                     <div className={styles.sidebarContainer}>
                         <MembersSidebar
-                            members={mockChannelMembers}
+                            members={channelMembers}
                             onClose={toggleMembersList}
                         />
                     </div>

@@ -64,4 +64,19 @@ export const channelsService = {
             data: result.data?.data || [],
         };
     },
+
+    getChannelActiveUsers: async (channelId: string) => {
+        const result = await GET("/v1/channels/{channelId}/active-users", {
+            params: {
+                path: { channelId },
+            },
+        });
+
+        if (result.error) {
+            console.error("Error fetching channel active users:", result.error);
+            throw result.error;
+        }
+
+        return result.data?.activeUsers || [];
+    },
 };

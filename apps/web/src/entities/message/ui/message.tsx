@@ -1,5 +1,6 @@
 import { ActionIcon, Avatar, Badge, Group, Paper, Text, Tooltip } from "@mantine/core";
 import { IconEdit, IconMessageForward, IconMoodSmile, IconTrash } from "@tabler/icons-react";
+import { getUserAvatarUrl } from "#/shared/lib/avatar";
 import { useState } from "react";
 
 import type { Message as MessageType } from "../model/types";
@@ -32,6 +33,9 @@ export function Message({
     const handleDelete = () => onDelete(message.id);
     const handleReact = () => onReact(message.id);
 
+    // Get avatar URL (use Dicebear as fallback if no custom avatar)
+    const avatarUrl = message.author.avatar || getUserAvatarUrl(message.author.id);
+
     return (
         <Paper
             className={styles.message}
@@ -39,7 +43,7 @@ export function Message({
             onMouseLeave={() => setShowActions(false)}
         >
             <div className={styles.messageContainer}>
-                <Avatar src={message.author.avatar} alt={message.author.username} radius="xl" size="md" className={styles.avatar} />
+                <Avatar src={avatarUrl} alt={message.author.username} radius="xl" size="md" className={styles.avatar} />
 
                 <div className={styles.messageContent}>
                     <Group gap="xs" className={styles.messageHeader}>

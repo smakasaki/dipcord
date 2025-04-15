@@ -2,7 +2,7 @@ import type { Message } from "#/entities/message";
 import type { ServerToClientEvents } from "#/shared/api/socket";
 
 import { socketService } from "#/shared/api/socket";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { useMessagesStore } from "./store";
 
@@ -12,8 +12,40 @@ export function useChannelWebsocket(channelId: string | undefined) {
     const [typingUsers, setTypingUsers] = useState<Map<string, { username: string; timestamp: number }>>(
         new Map(),
     );
+    const [wasHidden, setWasHidden] = useState(false);
+    const lastMessageTimestampRef = useRef<number>(Date.now());
 
     const messagesStore = useMessagesStore();
+
+    // Handler for page visibility changes
+    useEffect(() => {
+        if (!channelId)
+            return;
+
+        // Refresh messages when page becomes visible again
+        const handleVisibilityChange = () => {
+            if (document.visibilityState === "visible") {
+                // If page was previously hidden or we're not connected to websocket
+                if (wasHidden || !isConnected) {
+                    console.log("Page became visible again or connection lost, refreshing messages");
+                    messagesStore.fetchMessages(channelId);
+                    setWasHidden(false);
+                }
+            }
+            else if (document.visibilityState === "hidden") {
+                // Record that the page was hidden
+                setWasHidden(true);
+                // Save timestamp of when the page was hidden
+                lastMessageTimestampRef.current = Date.now();
+            }
+        };
+
+        document.addEventListener("visibilitychange", handleVisibilityChange);
+
+        return () => {
+            document.removeEventListener("visibilitychange", handleVisibilityChange);
+        };
+    }, [channelId, wasHidden, isConnected]);
 
     useEffect(() => {
         if (!channelId)
@@ -33,6 +65,11 @@ export function useChannelWebsocket(channelId: string | undefined) {
         const handleConnect = () => {
             setIsConnected(true);
             joinChannel();
+
+            // If we were previously disconnected, refresh messages
+            if (!isConnected) {
+                messagesStore.fetchMessages(channelId);
+            }
         };
 
         const handleDisconnect = () => {
@@ -44,6 +81,9 @@ export function useChannelWebsocket(channelId: string | undefined) {
         const handleMessageCreated = (data: Parameters<ServerToClientEvents["message:created"]>[0]) => {
             if (data.channelId !== channelId)
                 return;
+
+            // Update last message timestamp
+            lastMessageTimestampRef.current = Date.now();
 
             // For simplicity, let's just reload the channel messages
             try {
@@ -191,6 +231,14 @@ export function useChannelWebsocket(channelId: string | undefined) {
         }
     };
 
+    // Add function to manually refresh messages
+    const refreshMessages = () => {
+        if (channelId) {
+            return messagesStore.fetchMessages(channelId);
+        }
+        return Promise.resolve();
+    };
+
     return {
         isConnected,
         isJoined,
@@ -198,5 +246,6 @@ export function useChannelWebsocket(channelId: string | undefined) {
         startTyping,
         stopTyping,
         markLastMessageAsRead,
+        refreshMessages,
     };
 }

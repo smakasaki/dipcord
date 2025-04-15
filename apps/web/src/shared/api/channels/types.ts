@@ -28,5 +28,6 @@ export type ChannelMember = {
         name: string;
         surname: string;
         username: string;
+        avatar?: string;
     };
 };
