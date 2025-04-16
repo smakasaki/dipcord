@@ -5758,137 +5758,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/channels/{channelId}/activity": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** @description Track user activity in channel */
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    /** @description UUID identifier */
-                    channelId: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Default Response */
-                204: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": Record<string, never>;
-                    };
-                };
-                /** @description Default Response */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            statusCode: number;
-                            error: string;
-                            message: string;
-                            code?: string;
-                            details?: {
-                                validationErrors?: {
-                                    field: string;
-                                    message: string;
-                                }[];
-                                method?: string;
-                                url?: string;
-                            };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            statusCode: number;
-                            error: string;
-                            message: string;
-                            code?: string;
-                        };
-                    };
-                };
-                /** @description Default Response */
-                403: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            statusCode: number;
-                            error: string;
-                            message: string;
-                            code?: string;
-                        };
-                    };
-                };
-                /** @description Default Response */
-                404: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            statusCode: number;
-                            error: string;
-                            message: string;
-                            code?: string;
-                        };
-                    };
-                };
-                /** @description Default Response */
-                409: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            statusCode: number;
-                            error: string;
-                            message: string;
-                            code?: string;
-                        };
-                    };
-                };
-                /** @description Default Response */
-                500: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            statusCode: number;
-                            error: string;
-                            message: string;
-                            code?: string;
-                        };
-                    };
-                };
-            };
-        };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/v1/channels/{channelId}/active-users": {
         parameters: {
             query?: never;
@@ -7769,6 +7638,976 @@ export interface paths {
         options?: never;
         head?: never;
         patch?: never;
+        trace?: never;
+    };
+    "/v1/channels/{channelId}/tasks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Get tasks for a channel with filtering */
+        get: {
+            parameters: {
+                query?: {
+                    offset?: number;
+                    limit?: number;
+                    sort?: string | string[];
+                    query?: string;
+                    filter?: {
+                        [key: string]: unknown;
+                    };
+                    status?: ("new" | "in_progress" | "completed") | ("new" | "in_progress" | "completed")[];
+                    assignedToMe?: boolean;
+                };
+                header?: never;
+                path: {
+                    /** @description UUID identifier */
+                    channelId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @default 0 */
+                            count: number;
+                            data: {
+                                /**
+                                 * Format: uuid
+                                 * @description UUID identifier
+                                 */
+                                id: string;
+                                /**
+                                 * Format: uuid
+                                 * @description UUID identifier
+                                 */
+                                channelId: string;
+                                /**
+                                 * Format: uuid
+                                 * @description UUID identifier
+                                 */
+                                createdByUserId: string;
+                                /**
+                                 * Format: uuid
+                                 * @description UUID identifier
+                                 */
+                                assignedToUserId: string | null;
+                                title: string;
+                                description: string | null;
+                                /** Format: date-time */
+                                dueDate: string | null;
+                                /** @enum {string} */
+                                priority: "low" | "medium" | "high";
+                                /** @enum {string} */
+                                status: "new" | "in_progress" | "completed";
+                                /** Format: date-time */
+                                createdAt: string;
+                                /** Format: date-time */
+                                updatedAt: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            statusCode: number;
+                            error: string;
+                            message: string;
+                            code?: string;
+                            details?: {
+                                validationErrors?: {
+                                    field: string;
+                                    message: string;
+                                }[];
+                                method?: string;
+                                url?: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            statusCode: number;
+                            error: string;
+                            message: string;
+                            code?: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            statusCode: number;
+                            error: string;
+                            message: string;
+                            code?: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            statusCode: number;
+                            error: string;
+                            message: string;
+                            code?: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            statusCode: number;
+                            error: string;
+                            message: string;
+                            code?: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            statusCode: number;
+                            error: string;
+                            message: string;
+                            code?: string;
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        /** @description Create a new task in a channel */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description UUID identifier */
+                    channelId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        title: string;
+                        description?: string | null;
+                        /** Format: date-time */
+                        dueDate?: string | null;
+                        /**
+                         * @default medium
+                         * @enum {string}
+                         */
+                        priority?: "low" | "medium" | "high";
+                        /**
+                         * Format: uuid
+                         * @description UUID identifier
+                         */
+                        assignedToUserId?: string | null;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /**
+                             * Format: uuid
+                             * @description UUID identifier
+                             */
+                            id: string;
+                            /**
+                             * Format: uuid
+                             * @description UUID identifier
+                             */
+                            channelId: string;
+                            /**
+                             * Format: uuid
+                             * @description UUID identifier
+                             */
+                            createdByUserId: string;
+                            /**
+                             * Format: uuid
+                             * @description UUID identifier
+                             */
+                            assignedToUserId: string | null;
+                            title: string;
+                            description: string | null;
+                            /** Format: date-time */
+                            dueDate: string | null;
+                            /** @enum {string} */
+                            priority: "low" | "medium" | "high";
+                            /** @enum {string} */
+                            status: "new" | "in_progress" | "completed";
+                            /** Format: date-time */
+                            createdAt: string;
+                            /** Format: date-time */
+                            updatedAt: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            statusCode: number;
+                            error: string;
+                            message: string;
+                            code?: string;
+                            details?: {
+                                validationErrors?: {
+                                    field: string;
+                                    message: string;
+                                }[];
+                                method?: string;
+                                url?: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            statusCode: number;
+                            error: string;
+                            message: string;
+                            code?: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            statusCode: number;
+                            error: string;
+                            message: string;
+                            code?: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            statusCode: number;
+                            error: string;
+                            message: string;
+                            code?: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            statusCode: number;
+                            error: string;
+                            message: string;
+                            code?: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            statusCode: number;
+                            error: string;
+                            message: string;
+                            code?: string;
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/channels/{channelId}/tasks/{taskId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Get a specific task */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description UUID identifier */
+                    channelId: string;
+                    /** @description UUID identifier */
+                    taskId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /**
+                             * Format: uuid
+                             * @description UUID identifier
+                             */
+                            id: string;
+                            /**
+                             * Format: uuid
+                             * @description UUID identifier
+                             */
+                            channelId: string;
+                            /**
+                             * Format: uuid
+                             * @description UUID identifier
+                             */
+                            createdByUserId: string;
+                            /**
+                             * Format: uuid
+                             * @description UUID identifier
+                             */
+                            assignedToUserId: string | null;
+                            title: string;
+                            description: string | null;
+                            /** Format: date-time */
+                            dueDate: string | null;
+                            /** @enum {string} */
+                            priority: "low" | "medium" | "high";
+                            /** @enum {string} */
+                            status: "new" | "in_progress" | "completed";
+                            /** Format: date-time */
+                            createdAt: string;
+                            /** Format: date-time */
+                            updatedAt: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            statusCode: number;
+                            error: string;
+                            message: string;
+                            code?: string;
+                            details?: {
+                                validationErrors?: {
+                                    field: string;
+                                    message: string;
+                                }[];
+                                method?: string;
+                                url?: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            statusCode: number;
+                            error: string;
+                            message: string;
+                            code?: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            statusCode: number;
+                            error: string;
+                            message: string;
+                            code?: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            statusCode: number;
+                            error: string;
+                            message: string;
+                            code?: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            statusCode: number;
+                            error: string;
+                            message: string;
+                            code?: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            statusCode: number;
+                            error: string;
+                            message: string;
+                            code?: string;
+                        };
+                    };
+                };
+            };
+        };
+        /** @description Update a task */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description UUID identifier */
+                    channelId: string;
+                    /** @description UUID identifier */
+                    taskId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": {
+                        title?: string;
+                        description?: string | null;
+                        /** Format: date-time */
+                        dueDate?: string | null;
+                        /**
+                         * @default medium
+                         * @enum {string}
+                         */
+                        priority?: "low" | "medium" | "high";
+                        /**
+                         * Format: uuid
+                         * @description UUID identifier
+                         */
+                        assignedToUserId?: string | null;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /**
+                             * Format: uuid
+                             * @description UUID identifier
+                             */
+                            id: string;
+                            /**
+                             * Format: uuid
+                             * @description UUID identifier
+                             */
+                            channelId: string;
+                            /**
+                             * Format: uuid
+                             * @description UUID identifier
+                             */
+                            createdByUserId: string;
+                            /**
+                             * Format: uuid
+                             * @description UUID identifier
+                             */
+                            assignedToUserId: string | null;
+                            title: string;
+                            description: string | null;
+                            /** Format: date-time */
+                            dueDate: string | null;
+                            /** @enum {string} */
+                            priority: "low" | "medium" | "high";
+                            /** @enum {string} */
+                            status: "new" | "in_progress" | "completed";
+                            /** Format: date-time */
+                            createdAt: string;
+                            /** Format: date-time */
+                            updatedAt: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            statusCode: number;
+                            error: string;
+                            message: string;
+                            code?: string;
+                            details?: {
+                                validationErrors?: {
+                                    field: string;
+                                    message: string;
+                                }[];
+                                method?: string;
+                                url?: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            statusCode: number;
+                            error: string;
+                            message: string;
+                            code?: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            statusCode: number;
+                            error: string;
+                            message: string;
+                            code?: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            statusCode: number;
+                            error: string;
+                            message: string;
+                            code?: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            statusCode: number;
+                            error: string;
+                            message: string;
+                            code?: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            statusCode: number;
+                            error: string;
+                            message: string;
+                            code?: string;
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        /** @description Delete a task */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description UUID identifier */
+                    channelId: string;
+                    /** @description UUID identifier */
+                    taskId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": Record<string, never>;
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            statusCode: number;
+                            error: string;
+                            message: string;
+                            code?: string;
+                            details?: {
+                                validationErrors?: {
+                                    field: string;
+                                    message: string;
+                                }[];
+                                method?: string;
+                                url?: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            statusCode: number;
+                            error: string;
+                            message: string;
+                            code?: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            statusCode: number;
+                            error: string;
+                            message: string;
+                            code?: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            statusCode: number;
+                            error: string;
+                            message: string;
+                            code?: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            statusCode: number;
+                            error: string;
+                            message: string;
+                            code?: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            statusCode: number;
+                            error: string;
+                            message: string;
+                            code?: string;
+                        };
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/channels/{channelId}/tasks/{taskId}/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** @description Update task status */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description UUID identifier */
+                    channelId: string;
+                    /** @description UUID identifier */
+                    taskId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @enum {string} */
+                        status: "new" | "in_progress" | "completed";
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /**
+                             * Format: uuid
+                             * @description UUID identifier
+                             */
+                            id: string;
+                            /**
+                             * Format: uuid
+                             * @description UUID identifier
+                             */
+                            channelId: string;
+                            /**
+                             * Format: uuid
+                             * @description UUID identifier
+                             */
+                            createdByUserId: string;
+                            /**
+                             * Format: uuid
+                             * @description UUID identifier
+                             */
+                            assignedToUserId: string | null;
+                            title: string;
+                            description: string | null;
+                            /** Format: date-time */
+                            dueDate: string | null;
+                            /** @enum {string} */
+                            priority: "low" | "medium" | "high";
+                            /** @enum {string} */
+                            status: "new" | "in_progress" | "completed";
+                            /** Format: date-time */
+                            createdAt: string;
+                            /** Format: date-time */
+                            updatedAt: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            statusCode: number;
+                            error: string;
+                            message: string;
+                            code?: string;
+                            details?: {
+                                validationErrors?: {
+                                    field: string;
+                                    message: string;
+                                }[];
+                                method?: string;
+                                url?: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            statusCode: number;
+                            error: string;
+                            message: string;
+                            code?: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            statusCode: number;
+                            error: string;
+                            message: string;
+                            code?: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            statusCode: number;
+                            error: string;
+                            message: string;
+                            code?: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            statusCode: number;
+                            error: string;
+                            message: string;
+                            code?: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            statusCode: number;
+                            error: string;
+                            message: string;
+                            code?: string;
+                        };
+                    };
+                };
+            };
+        };
         trace?: never;
     };
 }

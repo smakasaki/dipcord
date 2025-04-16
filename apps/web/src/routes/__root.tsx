@@ -5,6 +5,7 @@ import { createRootRoute, Outlet } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import { SocketDebug } from "#/shared/ui/debug-socket";
 import "@mantine/core/styles.css";
+import "@mantine/dates/styles.css";
 
 const orangeColor: MantineColorsTuple = [
     "#fff0e4",
