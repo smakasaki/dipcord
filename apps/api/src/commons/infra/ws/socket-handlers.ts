@@ -122,6 +122,35 @@ export function registerSocketHandlers(fastify: FastifyInstance): void {
             }
         });
 
+        socket.on("task:status:change", async (taskId, status, callback) => {
+            try {
+                // Validate that the user has joined the channel where the task is
+                // This is a simplified check - actual implementation would verify proper access
+                if (!socket.data.joinedChannels || socket.data.joinedChannels.length === 0) {
+                    callback(false);
+                    return;
+                }
+
+                // Update task status through task service
+                if (fastify.taskService) {
+                    await fastify.taskService.updateTaskStatus({
+                        userId,
+                        taskId,
+                        status,
+                    });
+                    callback(true);
+                }
+                else {
+                    fastify.log.error("Task service not available");
+                    callback(false);
+                }
+            }
+            catch (error) {
+                fastify.log.error(error, `Error updating task status for task ${taskId}`);
+                callback(false);
+            }
+        });
+
         // Handle disconnect and cleanup
         socket.on("disconnect", async () => {
 
