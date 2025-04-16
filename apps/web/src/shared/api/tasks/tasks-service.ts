@@ -97,6 +97,7 @@ export const tasksService = {
             params: {
                 path: { channelId, taskId },
             },
+            body: JSON.stringify({}) as unknown as undefined,
         });
 
         if (result.error) {

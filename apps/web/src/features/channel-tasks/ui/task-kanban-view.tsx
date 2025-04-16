@@ -2,8 +2,10 @@ import type { TaskStatus } from "#/shared/api/tasks/types";
 
 import { Button, Group, Paper, SimpleGrid, Stack, Text } from "@mantine/core";
 import { IconPlus } from "@tabler/icons-react";
+import { useAuthStore } from "#/features/auth";
+import { useCallback } from "react";
 
-import { useTasksByStatus } from "../model";
+import { useTaskActions, useTaskPermissions, useTasksByStatus } from "../model";
 import { TaskCard } from "./task-card";
 
 const STATUS_LABELS: Record<TaskStatus, string> = {
@@ -24,6 +26,49 @@ type TaskKanbanViewProps = {
 
 export function TaskKanbanView({ onAddTask }: TaskKanbanViewProps) {
     const tasksByStatus = useTasksByStatus();
+    const { updateTaskStatus } = useTaskActions();
+    const { canChangeTaskStatus } = useTaskPermissions();
+
+    // Handle drag-and-drop to change task status
+    const handleDragStart = useCallback((e: React.DragEvent<HTMLDivElement>, taskId: string, currentStatus: TaskStatus) => {
+        e.dataTransfer.setData("taskId", taskId);
+        e.dataTransfer.setData("currentStatus", currentStatus);
+        e.dataTransfer.effectAllowed = "move";
+    }, []);
+
+    const handleDragOver = useCallback((e: React.DragEvent<HTMLDivElement>) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = "move";
+    }, []);
+
+    const handleDrop = useCallback((e: React.DragEvent<HTMLDivElement>, newStatus: TaskStatus) => {
+        e.preventDefault();
+
+        const taskId = e.dataTransfer.getData("taskId");
+        const currentStatus = e.dataTransfer.getData("currentStatus") as TaskStatus;
+
+        // Don't do anything if dropping in the same column
+        if (currentStatus === newStatus)
+            return;
+
+        // Find the task in the original status column to get its assignedToUserId
+        const task = tasksByStatus[currentStatus]?.find(t => t.id === taskId);
+
+        if (task) {
+            const userId = useAuthStore.getState().user?.id;
+            const userRoles = useAuthStore.getState().user?.roles || [];
+            const isAdminOrModerator = userRoles.some(role => ["admin", "moderator"].includes(role));
+
+            // Allow both assignees and task creators to change status
+            const canChange = canChangeTaskStatus(task.assignedToUserId)
+                || task.createdByUserId === userId
+                || isAdminOrModerator;
+
+            if (canChange) {
+                updateTaskStatus(taskId, newStatus);
+            }
+        }
+    }, [tasksByStatus, updateTaskStatus, canChangeTaskStatus]);
 
     // Create a column for each status
     const columns = Object.entries(tasksByStatus).map(([status, tasks]) => {
@@ -40,6 +85,8 @@ export function TaskKanbanView({ onAddTask }: TaskKanbanViewProps) {
                     display: "flex",
                     flexDirection: "column",
                 }}
+                onDragOver={handleDragOver}
+                onDrop={e => handleDrop(e, typedStatus)}
             >
                 <Group justify="space-between" mb="md">
                     <Group gap={8}>
@@ -66,7 +113,14 @@ export function TaskKanbanView({ onAddTask }: TaskKanbanViewProps) {
                     {tasks.length > 0
                         ? (
                                 tasks.map(task => (
-                                    <TaskCard key={task.id} task={task} />
+                                    <div
+                                        key={task.id}
+                                        draggable
+                                        onDragStart={e => handleDragStart(e, task.id, typedStatus)}
+                                        style={{ cursor: canChangeTaskStatus(task.assignedToUserId) ? "grab" : "default" }}
+                                    >
+                                        <TaskCard task={task} />
+                                    </div>
                                 ))
                             )
                         : (

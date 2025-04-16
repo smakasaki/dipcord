@@ -2,9 +2,11 @@
 
 import type { Task } from "#/shared/api/tasks/types";
 
-import { ActionIcon, Badge, Card, Group, Menu, Text, Tooltip } from "@mantine/core";
+import { ActionIcon, Avatar, Badge, Card, Group, Menu, Text, Tooltip } from "@mantine/core";
 import { IconArrowLeft, IconArrowRight, IconCalendar, IconDots, IconEdit, IconTrash } from "@tabler/icons-react";
+import { useAuthStore } from "#/features/auth";
 import { useChannelMembersStore } from "#/features/channel-members";
+import { getUserAvatarUrl } from "#/shared/lib/avatar";
 import { formatRelativeDate } from "#/shared/lib/date";
 import { memo } from "react";
 
@@ -15,7 +17,7 @@ type TaskCardProps = {
 };
 
 export const TaskCard = memo(({ task }: TaskCardProps) => {
-    const { selectTask, updateTaskStatus, deleteTask } = useTaskActions();
+    const { selectTask, updateTaskStatus, deleteTask, refreshTasks } = useTaskActions();
     const { canEditTask, canDeleteTask, canChangeTaskStatus } = useTaskPermissions();
     const { getUserInfo } = useChannelMembersStore();
 
@@ -26,6 +28,11 @@ export const TaskCard = memo(({ task }: TaskCardProps) => {
         : task.assignedToUserId
             ? "Unknown User"
             : "Unassigned";
+
+    // Get assignee avatar
+    const assigneeAvatarUrl = task.assignedToUserId
+        ? assigneeInfo?.avatar || getUserAvatarUrl(task.assignedToUserId)
+        : null;
 
     // Get formatted date
     const formattedDueDate = task.dueDate ? formatRelativeDate(new Date(task.dueDate)) : "No due date";
@@ -40,7 +47,9 @@ export const TaskCard = memo(({ task }: TaskCardProps) => {
     // Check permissions for this task
     const canEdit = canEditTask(task.createdByUserId, task.assignedToUserId);
     const canDelete = canDeleteTask(task.createdByUserId);
-    const canChangeStatus = canChangeTaskStatus(task.assignedToUserId);
+    const canChangeStatus = canChangeTaskStatus(task.assignedToUserId)
+        || task.createdByUserId === useAuthStore.getState().user?.id
+        || useAuthStore.getState().user?.roles?.some(role => ["admin", "moderator"].includes(role));
 
     // Handle status change
     const handleMoveToStatus = async (newStatus: "new" | "in_progress" | "completed") => {
@@ -53,6 +62,7 @@ export const TaskCard = memo(({ task }: TaskCardProps) => {
     const handleDelete = async () => {
         if (canDelete) {
             await deleteTask(task.id);
+            await refreshTasks();
         }
     };
 
@@ -67,7 +77,7 @@ export const TaskCard = memo(({ task }: TaskCardProps) => {
         >
             <Group justify="space-between" mb={5}>
                 <Group gap="xs">
-                    <Badge color={priorityColor} variant="filled" size="sm">
+                    <Badge color={priorityColor} variant="filled" size="sm" c="white">
                         {task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}
                     </Badge>
                     <Text fw={500} lineClamp={1}>
@@ -95,31 +105,39 @@ export const TaskCard = memo(({ task }: TaskCardProps) => {
                             </Menu.Item>
                         )}
 
-                        {task.status !== "new" && canChangeStatus && (
+                        {canChangeStatus && task.status !== "new" && (
                             <Menu.Item
                                 leftSection={<IconArrowLeft size={16} />}
                                 onClick={(e) => {
                                     e.stopPropagation();
-                                    handleMoveToStatus(task.status === "in_progress" ? "new" : "in_progress");
+                                    handleMoveToStatus("new");
                                 }}
                             >
-                                Move to
-                                {" "}
-                                {task.status === "in_progress" ? "New" : "In Progress"}
+                                Move to New
                             </Menu.Item>
                         )}
 
-                        {task.status !== "completed" && canChangeStatus && (
+                        {canChangeStatus && task.status !== "in_progress" && (
+                            <Menu.Item
+                                leftSection={task.status === "new" ? <IconArrowRight size={16} /> : <IconArrowLeft size={16} />}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleMoveToStatus("in_progress");
+                                }}
+                            >
+                                Move to In Progress
+                            </Menu.Item>
+                        )}
+
+                        {canChangeStatus && task.status !== "completed" && (
                             <Menu.Item
                                 leftSection={<IconArrowRight size={16} />}
                                 onClick={(e) => {
                                     e.stopPropagation();
-                                    handleMoveToStatus(task.status === "new" ? "in_progress" : "completed");
+                                    handleMoveToStatus("completed");
                                 }}
                             >
-                                Move to
-                                {" "}
-                                {task.status === "new" ? "In Progress" : "Completed"}
+                                Move to Completed
                             </Menu.Item>
                         )}
 
@@ -140,9 +158,18 @@ export const TaskCard = memo(({ task }: TaskCardProps) => {
             </Group>
 
             <Group justify="space-between" mt="xs">
-                <Text c="dimmed" size="sm">
-                    {assigneeName}
-                </Text>
+                <Group gap={6} wrap="nowrap">
+                    {assigneeAvatarUrl && (
+                        <Avatar
+                            src={assigneeAvatarUrl}
+                            size="xs"
+                            radius="xl"
+                        />
+                    )}
+                    <Text c="dimmed" size="sm">
+                        {assigneeName}
+                    </Text>
+                </Group>
 
                 <Tooltip label={task.dueDate ? new Date(task.dueDate).toLocaleDateString() : "No due date"}>
                     <Group gap={4}>
