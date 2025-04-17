@@ -26,8 +26,8 @@ export function formatRelativeDate(date: Date): string {
     nextWeek.setDate(today.getDate() + 7);
 
     if (dateOnly < nextWeek) {
-        const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-        return days[dateOnly.getDay()];
+        const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"] as const;
+        return days[dateOnly.getDay()] as string;
     }
 
     // Is it overdue?
@@ -81,4 +81,63 @@ export function getDueDateColor(date: Date | null): string | undefined {
     }
 
     return undefined;
+}
+
+/**
+ * Format a date to a relative time string (e.g., "2 hours ago")
+ */
+export function formatTimeToNow(date: Date): string {
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+
+    if (diffMins < 1) {
+        return "Just now";
+    }
+
+    if (diffMins < 60) {
+        return `${diffMins} minute${diffMins !== 1 ? "s" : ""} ago`;
+    }
+
+    const diffHours = Math.floor(diffMins / 60);
+
+    if (diffHours < 24) {
+        return `${diffHours} hour${diffHours !== 1 ? "s" : ""} ago`;
+    }
+
+    const diffDays = Math.floor(diffHours / 24);
+
+    if (diffDays < 30) {
+        return `${diffDays} day${diffDays !== 1 ? "s" : ""} ago`;
+    }
+
+    const diffMonths = Math.floor(diffDays / 30);
+
+    if (diffMonths < 12) {
+        return `${diffMonths} month${diffMonths !== 1 ? "s" : ""} ago`;
+    }
+
+    const diffYears = Math.floor(diffMonths / 12);
+    return `${diffYears} year${diffYears !== 1 ? "s" : ""} ago`;
+}
+
+/**
+ * Format the duration between two dates
+ */
+export function formatCallDuration(startDate: Date, endDate: Date): string {
+    const diffMs = endDate.getTime() - startDate.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+
+    if (diffMins < 1) {
+        return "Less than a minute";
+    }
+
+    const hours = Math.floor(diffMins / 60);
+    const mins = diffMins % 60;
+
+    if (hours === 0) {
+        return `${mins} minute${mins !== 1 ? "s" : ""}`;
+    }
+
+    return `${hours} hour${hours !== 1 ? "s" : ""} ${mins > 0 ? `${mins} minute${mins !== 1 ? "s" : ""}` : ""}`;
 }
