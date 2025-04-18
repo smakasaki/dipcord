@@ -2,10 +2,9 @@ import type { MessageType } from "#/entities/message";
 
 import { Button, Divider, Group, ScrollArea, Text } from "@mantine/core";
 import { Message as MessageComponent } from "#/entities/message";
-import { useEffect, useRef, useState } from "react";
-import { useMessagePermissionsStore } from "#/features/channel-messages";
 import { useChannelMembersStore } from "#/features/channel-members";
-import { useMessagesStore } from "#/features/channel-messages";
+import { useMessagePermissionsStore, useMessagesStore } from "#/features/channel-messages";
+import { useEffect, useRef, useState } from "react";
 
 import styles from "./message-list.module.css";
 
@@ -50,7 +49,7 @@ export function MessageList({
     const [previousMessagesLength, setPreviousMessagesLength] = useState(0);
     const lastScrollPositionRef = useRef<number>(0);
     const firstVisibleMessageRef = useRef<string | null>(null);
-    
+
     // Get channel permissions
     const { fetchChannelMembers } = useChannelMembersStore();
     const { updatePermissions } = useMessagePermissionsStore();
@@ -196,7 +195,7 @@ export function MessageList({
             });
         }
     };
-    
+
     // Handler for editing messages
     const handleEditMessage = async (messageId: string, content: string) => {
         try {
@@ -204,11 +203,12 @@ export function MessageList({
             if (onEdit) {
                 onEdit(messageId, content);
             }
-        } catch (error) {
+        }
+        catch (error) {
             console.error("Failed to edit message", error);
         }
     };
-    
+
     // Handler for deleting messages
     const handleDeleteMessage = async (messageId: string) => {
         try {
@@ -216,7 +216,8 @@ export function MessageList({
             if (onDelete) {
                 onDelete(messageId);
             }
-        } catch (error) {
+        }
+        catch (error) {
             console.error("Failed to delete message", error);
         }
     };
@@ -264,10 +265,10 @@ export function MessageList({
                                     && prevMessage.author?.id === message.author?.id
                                     && (new Date(message.timestamp).getTime()
                                         - new Date(prevMessage.timestamp).getTime()) < 5 * 60 * 1000;
-                                
+
                                 const isCurrentUser = message.author.id === currentUserId;
-                                const messageClass = isCurrentUser 
-                                    ? `${styles.message} ${styles.ownMessage}` 
+                                const messageClass = isCurrentUser
+                                    ? `${styles.message} ${styles.ownMessage}`
                                     : isAuthorSame ? styles.continuedMessage : styles.message;
 
                                 return (

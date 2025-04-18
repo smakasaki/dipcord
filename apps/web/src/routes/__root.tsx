@@ -6,6 +6,7 @@ import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import { SocketDebug } from "#/shared/ui/debug-socket";
 import "@mantine/core/styles.css";
 import "@mantine/dates/styles.css";
+import "@mantine/charts/styles.css";
 
 const orangeColor: MantineColorsTuple = [
     "#fff0e4",
@@ -31,7 +32,7 @@ const theme = createTheme({
     primaryShade: { light: 6, dark: 7 },
 
     // Enable auto contrast for better text visibility on various color shades
-    autoContrast: true,
+    // autoContrast: true,
 
     // Optional: Define a default gradient that uses your brand color
     defaultGradient: {

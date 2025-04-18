@@ -1,8 +1,8 @@
 import { ActionIcon, Avatar, Badge, Group, Paper, Text, Tooltip } from "@mantine/core";
 import { IconEdit, IconMessageForward, IconMoodSmile, IconTrash } from "@tabler/icons-react";
+import { useMessagePermissionsStore } from "#/features/channel-messages/model/permissions";
 import { getUserAvatarUrl } from "#/shared/lib/avatar";
 import { useState } from "react";
-import { useMessagePermissionsStore } from "#/features/channel-messages/model/permissions";
 
 import type { Message as MessageType } from "../model/types";
 
@@ -40,7 +40,7 @@ export function Message({
 
     // Get avatar URL (use Dicebear as fallback if no custom avatar)
     const avatarUrl = message.author.avatar || getUserAvatarUrl(message.author.id);
-    
+
     // Use brand-orange color for buttons when it's the user's own message
     const actionColor = isOwnMessage ? "brand-orange" : "gray";
 
@@ -161,7 +161,7 @@ export function Message({
                                 </ActionIcon>
                             </Tooltip>
                         )}
-                        
+
                         {canDelete && (
                             <Tooltip label="Delete">
                                 <ActionIcon onClick={handleDelete} variant="subtle" color={actionColor}>

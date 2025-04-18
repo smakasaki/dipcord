@@ -1,6 +1,6 @@
 import type { Channel } from "#/entities/channel";
 
-import { Avatar, ScrollArea, Title, Tooltip, UnstyledButton } from "@mantine/core";
+import { Avatar, ScrollArea, Tooltip, UnstyledButton } from "@mantine/core";
 import {
     IconChartBar,
     IconListCheck,
@@ -10,7 +10,7 @@ import {
     IconSettings,
     IconUserCircle,
 } from "@tabler/icons-react";
-import { useNavigate } from "@tanstack/react-router";
+import { useNavigate, useRouterState } from "@tanstack/react-router";
 import { useChannels, useChannelsLoading, useFetchUserChannels } from "#/features/channels";
 import { DipcordLogo } from "#/shared/ui/logos";
 import { useEffect, useState } from "react";
@@ -61,6 +61,9 @@ export function ChannelNavbar() {
     const isChannelsLoading = useChannelsLoading();
     const { getUserChannels } = useFetchUserChannels();
 
+    // Get the current location pathname to determine active tab
+    const location = useRouterState({ select: s => s.location });
+
     const [activeChannel, setActiveChannel] = useState("");
     const [activeSystemLink, setActiveSystemLink] = useState("");
     const [activeTab, setActiveTab] = useState("chat");
@@ -74,6 +77,32 @@ export function ChannelNavbar() {
             setActiveChannel(channels[0]?.id || "");
         }
     }, [channels, activeChannel]);
+
+    // Effect to update the active tab based on the current URL path
+    useEffect(() => {
+        const pathname = location.pathname;
+
+        // Extract the tab name from the URL pathname (e.g., /app/{channelId}/polls => polls)
+        const pathParts = pathname.split("/");
+        const lastPathPart = pathParts[pathParts.length - 1];
+
+        if (lastPathPart && systemLinksMockdata.some(link => link.id === lastPathPart)) {
+            setActiveSystemLink(lastPathPart);
+            setActiveChannel("");
+            setActiveTab(lastPathPart);
+        }
+        else if (lastPathPart && channelTabsMockdata.some(tab => tab.id === lastPathPart)) {
+            // Handle channel tabs like chat, tasks, polls, calls
+            setActiveTab(lastPathPart);
+
+            // If we have a channel ID in the URL, set it as active
+            if (pathParts.length >= 3 && pathParts[2]) {
+                const channelId = pathParts[2];
+                setActiveChannel(channelId);
+                setActiveSystemLink("");
+            }
+        }
+    }, [location.pathname]);
 
     // Render channel avatars for the first column
     const channelLinks = channels.map((channel: Channel) => (
@@ -138,13 +167,9 @@ export function ChannelNavbar() {
 
     // Determine which tabs to show based on active selection
     let tabs: React.ReactNode[] = [];
-    let title = "";
 
     if (activeChannel) {
-    // Show channel tabs and use the channel name as title
-        const activeChannelData = channels.find(c => c.id === activeChannel);
-        title = activeChannelData?.name || "";
-
+        // Show channel tabs
         tabs = channelTabsMockdata.map(tab => (
             <a
                 className={classes.link}
@@ -187,27 +212,22 @@ export function ChannelNavbar() {
             </a>
         ));
     }
-    else if (activeSystemLink) {
-    // Show system tabs and use the system link name as title
-        const activeSystemLinkData = systemLinksMockdata.find(l => l.id === activeSystemLink);
-        title = activeSystemLinkData?.label || "";
-
-        if (activeSystemLink === "settings") {
-            tabs = settingsTabsMockdata.map(tab => (
-                <a
-                    className={classes.link}
-                    data-active={activeTab === tab ? true : undefined}
-                    href="#"
-                    onClick={(event) => {
-                        event.preventDefault();
-                        setActiveTab(tab);
-                    }}
-                    key={tab}
-                >
-                    {tab}
-                </a>
-            ));
-        }
+    else if (activeSystemLink === "settings") {
+        // Show settings tabs
+        tabs = settingsTabsMockdata.map(tab => (
+            <a
+                className={classes.link}
+                data-active={activeTab === tab ? true : undefined}
+                href="#"
+                onClick={(event) => {
+                    event.preventDefault();
+                    setActiveTab(tab);
+                }}
+                key={tab}
+            >
+                {tab}
+            </a>
+        ));
     }
 
     return (
@@ -250,12 +270,8 @@ export function ChannelNavbar() {
                 </div>
 
                 <div className={classes.main}>
-                    <Title order={4} fw={500} style={{ marginLeft: 16, marginBottom: 16 }}>
-                        {title}
-                    </Title>
-
                     {tabs.length > 0 && (
-                        <div className={classes.links}>
+                        <div className={classes.links} style={{ paddingTop: "12px" }}>
                             {tabs}
                         </div>
                     )}

@@ -1,6 +1,6 @@
 import type { CallJoinModalRef } from "#/features/channel-calls";
 
-import { Button, Container, Group, Loader, Stack, Text, Title } from "@mantine/core";
+import { Button, Container, Group, Loader, ScrollArea, Stack, Text, Title } from "@mantine/core";
 import { IconHistory, IconPhoneCall } from "@tabler/icons-react";
 import { useParams } from "@tanstack/react-router";
 import { ActiveCallCard, CallHistoryItem, CallJoinModal, StartCallCard, useActiveCall, useCallActions, useCalls, useCallsLoading } from "#/features/channel-calls";
@@ -57,15 +57,12 @@ export function ChannelCallsPage() {
     };
 
     return (
-        <Container fluid>
-            <Group justify="apart" mb="lg">
-                <Title order={2}>Channel Calls</Title>
-
+        <Container fluid style={{ height: "100vh", display: "flex", flexDirection: "column", overflow: "hidden" }} py="md">
+            <Group justify="apart" mb="lg" style={{ display: "none" }}>
                 <Button
                     leftSection={<IconPhoneCall size={16} />}
                     color="green"
                     onClick={() => callModalRef.current?.openCall(activeCall!)}
-                    style={{ display: "none" }} // Hidden debug button
                 >
                     Debug Join
                 </Button>
@@ -78,7 +75,7 @@ export function ChannelCallsPage() {
                         </div>
                     )
                 : (
-                        <Stack gap="lg">
+                        <Stack gap="xl" pt="md" pb="lg" style={{ flex: 1, overflow: "hidden" }}>
                             {/* Active call section */}
                             {activeCall
                                 ? (
@@ -93,28 +90,30 @@ export function ChannelCallsPage() {
                                     )}
 
                             {/* Call history section */}
-                            <div>
+                            <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
                                 <Group mb="md">
                                     <IconHistory size={20} />
                                     <Title order={3}>Recent Calls</Title>
                                 </Group>
 
-                                {calls.length === 0
-                                    ? (
-                                            <Text color="dimmed" ta="center" py="xl">
-                                                No previous calls in this channel
-                                            </Text>
-                                        )
-                                    : (
-                                            <Stack gap="md">
-                                                {calls.map(call => (
-                                                    <CallHistoryItem
-                                                        key={call.id}
-                                                        call={call}
-                                                    />
-                                                ))}
-                                            </Stack>
-                                        )}
+                                <ScrollArea style={{ flex: 1 }} offsetScrollbars scrollbarSize={5} pr="md">
+                                    {calls.length === 0
+                                        ? (
+                                                <Text color="dimmed" ta="center" py="xl">
+                                                    No previous calls in this channel
+                                                </Text>
+                                            )
+                                        : (
+                                                <Stack gap="md" pb="md">
+                                                    {calls.map(call => (
+                                                        <CallHistoryItem
+                                                            key={call.id}
+                                                            call={call}
+                                                        />
+                                                    ))}
+                                                </Stack>
+                                            )}
+                                </ScrollArea>
                             </div>
                         </Stack>
                     )}

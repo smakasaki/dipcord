@@ -38,7 +38,6 @@
 }
 
 .ownMessage :global(.mantine-Paper-root) {
-    background-color: rgba(242, 128, 67, 0.1); /* brand-orange with transparency */
     border-left: 3px solid var(--mantine-color-brand-orange-6);
 }
 
