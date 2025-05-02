@@ -1,17 +1,14 @@
 import type { MessageType } from "#/entities/message";
+import type { ListRange, VirtuosoHandle } from "react-virtuoso";
 
-import { Button, Divider, Group, ScrollArea, Text } from "@mantine/core";
+import { Button, Divider, Text } from "@mantine/core";
 import { Message as MessageComponent } from "#/entities/message";
 import { useChannelMembersStore } from "#/features/channel-members";
 import { useMessagePermissionsStore, useMessagesStore } from "#/features/channel-messages";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Virtuoso } from "react-virtuoso";
 
 import styles from "./message-list.module.css";
-
-type MessageGroup = {
-    date: string;
-    messages: MessageType[];
-};
 
 type MessageListProps = {
     messages: MessageType[];
@@ -25,6 +22,12 @@ type MessageListProps = {
     hasMoreMessages: boolean;
     isLoading?: boolean;
     typingText?: string;
+};
+
+type VirtuosoItem = {
+    type: "header" | "message";
+    content: string | MessageType;
+    id: string;
 };
 
 export function MessageList({
@@ -41,14 +44,11 @@ export function MessageList({
     typingText,
 }: MessageListProps) {
     const [loading, setLoading] = useState(false);
-    const messagesEndRef = useRef<HTMLDivElement>(null);
     const [showNewMessagesBanner, setShowNewMessagesBanner] = useState(false);
-    const viewportRef = useRef<HTMLDivElement>(null);
     const [initialLoad, setInitialLoad] = useState(true);
-    const messageRefs = useRef<Record<string, HTMLDivElement>>({});
-    const [previousMessagesLength, setPreviousMessagesLength] = useState(0);
-    const lastScrollPositionRef = useRef<number>(0);
-    const firstVisibleMessageRef = useRef<string | null>(null);
+    const virtuosoRef = useRef<VirtuosoHandle>(null);
+    const [visibleRange, setVisibleRange] = useState<ListRange>({ startIndex: 0, endIndex: 0 });
+    const [firstVisibleItemId, setFirstVisibleItemId] = useState<string | null>(null);
 
     // Get channel permissions
     const { fetchChannelMembers } = useChannelMembersStore();
@@ -65,139 +65,133 @@ export function MessageList({
         }
     }, [channelId, fetchChannelMembers, updatePermissions]);
 
-    // Group messages by date
-    const messageGroups = groupMessagesByDate(messages);
+    // Prepare virtualized items with date headers
+    const virtuosoData = useMemo((): VirtuosoItem[] => {
+        // Group messages by date
+        const messagesByDate = {} as Record<string, MessageType[]>;
 
-    // Auto-scroll to bottom on first load
+        messages.forEach((message) => {
+            const date = new Date(message.timestamp).toLocaleDateString();
+            if (!messagesByDate[date]) {
+                messagesByDate[date] = [];
+            }
+            messagesByDate[date].push(message);
+        });
+
+        // Create an array with date headers and messages
+        const result: VirtuosoItem[] = [];
+
+        Object.entries(messagesByDate).forEach(([date, messagesInGroup]) => {
+            // Add date header
+            result.push({
+                type: "header",
+                content: date,
+                id: `header-${date}`,
+            });
+
+            // Add messages
+            messagesInGroup.forEach((message) => {
+                result.push({
+                    type: "message",
+                    content: message,
+                    id: message.id,
+                });
+            });
+        });
+
+        return result;
+    }, [messages]);
+
+    // Update effect for scrolling to bottom on initial load
     useEffect(() => {
-        if (initialLoad && messagesEndRef.current) {
-            messagesEndRef.current.scrollIntoView();
-            setInitialLoad(false);
+        if (initialLoad && messages.length > 0) {
+            // We need a short timeout to ensure Virtuoso has rendered the items
+            const timeoutId = setTimeout(() => {
+                virtuosoRef.current?.scrollToIndex({
+                    index: virtuosoData.length - 1,
+                    behavior: "auto",
+                });
+                setInitialLoad(false);
+            }, 50);
+
+            return () => clearTimeout(timeoutId);
         }
-    }, [initialLoad, messages.length]);
+    }, [initialLoad, messages.length, virtuosoData.length]);
 
-    // Сохраняем позицию скролла перед загрузкой новых сообщений
+    // Effect to restore scroll position after loading more messages
     useEffect(() => {
-        if (viewportRef.current && loading) {
-            lastScrollPositionRef.current = viewportRef.current.scrollTop;
-
-            // Сохраняем ID первого видимого сообщения
-            if (messages.length > 0) {
-                const viewport = viewportRef.current;
-                const scrollPos = viewport.scrollTop;
-
-                // Находим первое сообщение, которое видно в viewport
-                for (const messageId in messageRefs.current) {
-                    const messageEl = messageRefs.current[messageId];
-                    if (!messageEl)
-                        continue;
-
-                    const rect = messageEl.getBoundingClientRect();
-                    const elTop = rect.top + scrollPos - viewport.getBoundingClientRect().top;
-
-                    if (elTop > scrollPos) {
-                        firstVisibleMessageRef.current = messageId;
-                        break;
-                    }
-                }
+        if (firstVisibleItemId && !loading && virtuosoData.length > 0) {
+            const index = virtuosoData.findIndex(item => item.id === firstVisibleItemId);
+            if (index !== -1) {
+                virtuosoRef.current?.scrollToIndex({
+                    index,
+                    behavior: "auto",
+                    align: "start",
+                });
+                setFirstVisibleItemId(null);
             }
         }
-    }, [loading, messages.length]);
+    }, [virtuosoData, loading, firstVisibleItemId]);
 
-    // Восстанавливаем позицию скролла после загрузки сообщений
-    useEffect(() => {
-        if (!loading && messages.length > previousMessagesLength && !initialLoad) {
-            // Если загрузились новые сообщения и это не первая загрузка
-            const messageId = firstVisibleMessageRef.current;
+    // Track range changes to know what items are visible
+    const handleRangeChange = useCallback((range: ListRange) => {
+        setVisibleRange(range);
+    }, []);
 
-            if (messageId && messageRefs.current[messageId]) {
-                // Восстанавливаем позицию, чтобы пользователь остался на том же месте
-                const timeoutId = setTimeout(() => {
-                    if (messageRefs.current[messageId]) {
-                        messageRefs.current[messageId].scrollIntoView({ block: "start", behavior: "auto" });
-                    }
-                }, 10);
-
-                return () => clearTimeout(timeoutId);
-            }
-        }
-
-        // Обновляем предыдущую длину сообщений для следующего сравнения
-        setPreviousMessagesLength(messages.length);
-    }, [messages.length, loading, initialLoad]);
-
-    // Auto-scroll to bottom on new messages
-    useEffect(() => {
-        if (messagesEndRef.current && viewportRef.current && !initialLoad) {
-            // Check if already at bottom
-            const viewport = viewportRef.current;
-            const isAtBottom = viewport.scrollHeight - viewport.scrollTop - viewport.clientHeight < 100;
-
-            if (isAtBottom) {
-                messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
-                if (showNewMessagesBanner) {
-                    setShowNewMessagesBanner(false);
-                }
-            }
-            else if (!showNewMessagesBanner) {
-                setShowNewMessagesBanner(true);
-            }
-        }
-    }, [messages.length, initialLoad, showNewMessagesBanner]);
-
-    const handleLoadMore = async () => {
+    // Handler for loading more messages
+    const handleLoadMore = useCallback(async () => {
         if (loading || isLoading || !hasMoreMessages)
             return;
 
         setLoading(true);
-        const hasMore = await onLoadMore();
-        setLoading(false);
 
-        return hasMore;
-    };
-
-    // Handle scroll detection
-    const handleScroll = ({ y }: { x: number; y: number }) => {
-        // Load more messages when reaching the top
-        if (y < 150 && !loading && !isLoading && hasMoreMessages) {
-            handleLoadMore();
-        }
-
-        // Show "new messages" banner when scrolled up
-        const viewport = viewportRef.current;
-        if (viewport) {
-            const distanceFromBottom = viewport.scrollHeight - viewport.scrollTop - viewport.clientHeight;
-
-            if (distanceFromBottom > 300) {
-                setShowNewMessagesBanner(true);
-            }
-            else {
-                setShowNewMessagesBanner(false);
+        // Store the ID of the first visible item to maintain scroll position
+        if (visibleRange.startIndex >= 0 && virtuosoData.length > visibleRange.startIndex && virtuosoData[visibleRange.startIndex]) {
+            const item = virtuosoData[visibleRange.startIndex];
+            if (item && item.id) {
+                setFirstVisibleItemId(item.id);
             }
         }
-    };
 
-    const scrollToBottom = () => {
-        if (messagesEndRef.current) {
-            messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
-            if (showNewMessagesBanner) {
-                setShowNewMessagesBanner(false);
-            }
+        try {
+            await onLoadMore();
+            setLoading(false);
         }
-    };
+        catch (error) {
+            setLoading(false);
+            setFirstVisibleItemId(null);
+            console.error("Error loading more messages:", error);
+        }
+    }, [loading, isLoading, hasMoreMessages, onLoadMore, visibleRange, virtuosoData]);
 
-    // Функция для прокрутки к указанному сообщению
-    const scrollToMessage = (messageId: string) => {
-        if (messageRefs.current[messageId]) {
-            messageRefs.current[messageId].scrollIntoView({
-                behavior: "smooth",
-                block: "center",
+    // Scroll to bottom function
+    const scrollToBottom = useCallback(() => {
+        virtuosoRef.current?.scrollToIndex({
+            index: virtuosoData.length - 1,
+            behavior: "auto",
+        });
+        setShowNewMessagesBanner(false);
+    }, [virtuosoData.length]);
+
+    // Scroll to specific message
+    const scrollToMessage = useCallback((messageId: string) => {
+        const messageIndex = virtuosoData.findIndex(
+            item => item.type === "message"
+                && typeof item.content !== "string"
+                && item.content.id === messageId,
+        );
+
+        if (messageIndex !== -1) {
+            virtuosoRef.current?.scrollToIndex({
+                index: messageIndex,
+                behavior: "auto",
+                align: "center",
             });
         }
-    };
+    }, [virtuosoData]);
 
-    // Handler for editing messages
-    const handleEditMessage = async (messageId: string, content: string) => {
+    // Handle editing messages
+    const handleEditMessage = useCallback(async (messageId: string, content: string) => {
         try {
             await updateMessage(messageId, content);
             if (onEdit) {
@@ -207,10 +201,10 @@ export function MessageList({
         catch (error) {
             console.error("Failed to edit message", error);
         }
-    };
+    }, [updateMessage, onEdit]);
 
-    // Handler for deleting messages
-    const handleDeleteMessage = async (messageId: string) => {
+    // Handle deleting messages
+    const handleDeleteMessage = useCallback(async (messageId: string) => {
         try {
             await deleteMessage(messageId);
             if (onDelete) {
@@ -220,94 +214,125 @@ export function MessageList({
         catch (error) {
             console.error("Failed to delete message", error);
         }
-    };
+    }, [deleteMessage, onDelete]);
+
+    // Item renderer for the virtuoso list
+    const itemContent = useCallback((index: number, item: VirtuosoItem) => {
+        if (item.type === "header") {
+            return (
+                <Divider
+                    className={styles.dateDivider}
+                    label={<Text size="xs">{typeof item.content === "string" ? item.content : null}</Text>}
+                />
+            );
+        }
+
+        if (item.type === "message" && typeof item.content !== "string") {
+            const message = item.content;
+            const isCurrentUser = message.author.id === currentUserId;
+
+            // Check for previous message to determine if it's a continued message from same author
+            let isAuthorSame = false;
+            if (index > 0) {
+                const prevItem = virtuosoData[index - 1];
+                if (prevItem && prevItem.type === "message" && typeof prevItem.content !== "string") {
+                    const prevMessage = prevItem.content;
+                    isAuthorSame = prevMessage.author?.id === message.author?.id
+                        && (new Date(message.timestamp).getTime() - new Date(prevMessage.timestamp).getTime()) < 5 * 60 * 1000;
+                }
+            }
+
+            const messageClass = isCurrentUser
+                ? `${styles.message} ${styles.ownMessage}`
+                : isAuthorSame ? styles.continuedMessage : styles.message;
+
+            return (
+                <div className={messageClass}>
+                    <MessageComponent
+                        message={message}
+                        isOwnMessage={isCurrentUser}
+                        onReply={() => onReply(message)}
+                        onEdit={content => handleEditMessage(message.id, content)}
+                        onDelete={() => handleDeleteMessage(message.id)}
+                        onReact={() => onReact(message.id)}
+                        onGoToMessage={scrollToMessage}
+                    />
+                </div>
+            );
+        }
+
+        return null;
+    }, [currentUserId, virtuosoData, onReply, onReact, handleEditMessage, handleDeleteMessage, scrollToMessage]);
+
+    // Virtuoso components
+    const components = useMemo(() => ({
+        Header: hasMoreMessages
+            ? () => (
+                    <div className={styles.loadMoreContainer}>
+                        <Button
+                            onClick={handleLoadMore}
+                            loading={loading || isLoading}
+                            variant="subtle"
+                            size="xs"
+                        >
+                            Load more messages
+                        </Button>
+                    </div>
+                )
+            : undefined,
+
+        Footer: typingText
+            ? () => (
+                    <div className={styles.typingIndicator}>
+                        <Text size="xs" fs="italic" c="dimmed">
+                            {typingText}
+                        </Text>
+                    </div>
+                )
+            : undefined,
+    }), [hasMoreMessages, loading, isLoading, handleLoadMore, typingText]);
+
+    // Watch for scroll events to show/hide new messages banner
+    const handleScroll = useCallback((event: React.UIEvent<HTMLDivElement>) => {
+        const element = event.currentTarget;
+        const scrollTop = element.scrollTop;
+        const scrollHeight = element.scrollHeight;
+        const clientHeight = element.clientHeight;
+
+        // Show banner if not at bottom and new messages have arrived
+        const isAtBottom = scrollTop + clientHeight >= scrollHeight - 100;
+
+        if (!isAtBottom && messages.length > 0 && !showNewMessagesBanner) {
+            setShowNewMessagesBanner(true);
+        }
+        else if (isAtBottom && showNewMessagesBanner) {
+            setShowNewMessagesBanner(false);
+        }
+    }, [messages.length, showNewMessagesBanner]);
 
     return (
         <div className={styles.container}>
-            <ScrollArea
-                viewportRef={viewportRef}
-                onScrollPositionChange={handleScroll}
-                scrollbarSize={5}
-                type="hover"
-                offsetScrollbars
-                h="100%"
-                style={{ flex: 1 }}
-            >
-                <div className={styles.messagesWrapper}>
-                    {hasMoreMessages && (
-                        <div className={styles.loadMoreContainer}>
-                            <Button
-                                onClick={handleLoadMore}
-                                loading={loading || isLoading}
-                                variant="subtle"
-                                size="xs"
-                            >
-                                Load more messages
-                            </Button>
-                        </div>
-                    )}
-
-                    {messageGroups.map(group => (
-                        <div key={group.date} className={styles.messageGroup}>
-                            <Divider
-                                className={styles.dateDivider}
-                                label={<Text size="xs">{group.date}</Text>}
-                            />
-
-                            {group.messages.map((message, messageIndex) => {
-                                // Проверяем, что сообщение и его поля валидны
-                                if (!message || !message.id || !message.author) {
-                                    return null;
-                                }
-
-                                const prevMessage = messageIndex > 0 ? group.messages[messageIndex - 1] : null;
-                                const isAuthorSame = !!prevMessage
-                                    && prevMessage.author?.id === message.author?.id
-                                    && (new Date(message.timestamp).getTime()
-                                        - new Date(prevMessage.timestamp).getTime()) < 5 * 60 * 1000;
-
-                                const isCurrentUser = message.author.id === currentUserId;
-                                const messageClass = isCurrentUser
-                                    ? `${styles.message} ${styles.ownMessage}`
-                                    : isAuthorSame ? styles.continuedMessage : styles.message;
-
-                                return (
-                                    <div
-                                        key={message.id}
-                                        className={messageClass}
-                                        ref={(el) => {
-                                            if (el)
-                                                messageRefs.current[message.id] = el;
-                                        }}
-                                    >
-                                        <MessageComponent
-                                            message={message}
-                                            isOwnMessage={isCurrentUser}
-                                            onReply={() => onReply(message)}
-                                            onEdit={content => handleEditMessage(message.id, content)}
-                                            onDelete={() => handleDeleteMessage(message.id)}
-                                            onReact={() => onReact(message.id)}
-                                            onGoToMessage={scrollToMessage}
-                                        />
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    ))}
-
-                    {/* Add typing indicator at the end of messages */}
-                    {typingText && (
-                        <div className={styles.typingIndicator}>
-                            <Text size="xs" fs="italic" c="dimmed">
-                                {typingText}
-                            </Text>
-                        </div>
-                    )}
-
-                    {/* This ref helps scroll to the end */}
-                    <div ref={messagesEndRef} />
-                </div>
-            </ScrollArea>
+            <Virtuoso
+                ref={virtuosoRef}
+                style={{ height: "100%", width: "100%" }}
+                data={virtuosoData}
+                itemContent={itemContent}
+                components={components}
+                followOutput="auto"
+                firstItemIndex={0}
+                initialTopMostItemIndex={virtuosoData.length - 1}
+                alignToBottom
+                key={channelId} // Reset virtuoso when channel changes
+                atTopThreshold={150} // Load more messages when 150px from top
+                atTopStateChange={(atTop) => {
+                    if (atTop && hasMoreMessages && !loading && !isLoading) {
+                        handleLoadMore();
+                    }
+                }}
+                onScroll={handleScroll}
+                rangeChanged={handleRangeChange}
+                computeItemKey={index => (virtuosoData[index] ? virtuosoData[index].id : `item-${index}`)}
+            />
 
             {showNewMessagesBanner && (
                 <Button
@@ -321,22 +346,4 @@ export function MessageList({
             )}
         </div>
     );
-}
-
-// Helper function to group messages by date
-function groupMessagesByDate(messages: MessageType[]): MessageGroup[] {
-    const groups: Record<string, MessageType[]> = {};
-
-    messages.forEach((message) => {
-        const date = new Date(message.timestamp).toLocaleDateString();
-        if (!groups[date]) {
-            groups[date] = [];
-        }
-        groups[date].push(message);
-    });
-
-    return Object.entries(groups).map(([date, messages]) => ({
-        date,
-        messages,
-    }));
 }

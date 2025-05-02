@@ -1,6 +1,8 @@
 import type { Message } from "#/entities/message";
 import type { ServerToClientEvents } from "#/shared/api/socket";
 
+import { mapMessageResponse } from "#/entities/message";
+import { messagesService } from "#/shared/api/messages";
 import { socketService } from "#/shared/api/socket";
 import { useEffect, useRef, useState } from "react";
 
@@ -78,16 +80,24 @@ export function useChannelWebsocket(channelId: string | undefined) {
         };
 
         // Handle new messages
-        const handleMessageCreated = (data: Parameters<ServerToClientEvents["message:created"]>[0]) => {
+        const handleMessageCreated = async (data: Parameters<ServerToClientEvents["message:created"]>[0]) => {
             if (data.channelId !== channelId)
                 return;
 
             // Update last message timestamp
             lastMessageTimestampRef.current = Date.now();
 
-            // For simplicity, let's just reload the channel messages
             try {
-                messagesStore.fetchMessages(channelId);
+                // Get the message from the API
+                const response = await messagesService.getMessage(data.messageId);
+                if (response) {
+                    // The store's sendMessage implementation will handle appending
+                    // the message to the existing messages array
+                    messagesStore.fetchMessages(channelId, {
+                        limit: 1, // Just get the latest message
+                        sort: "newest", // Get newest first
+                    });
+                }
             }
             catch {
                 // Silent error handling
