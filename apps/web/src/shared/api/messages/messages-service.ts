@@ -100,6 +100,7 @@ export const messagesService = {
             params: {
                 path: { messageId },
             },
+            body: JSON.stringify({}) as unknown as undefined,
         });
 
         if (result.error) {
@@ -129,6 +130,7 @@ export const messagesService = {
             params: {
                 path: { messageId, emoji },
             },
+            body: JSON.stringify({}) as unknown as undefined,
         });
 
         if (result.error) {

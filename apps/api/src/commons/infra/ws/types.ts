@@ -85,6 +85,50 @@ export type ServerToClientEvents = {
         lastReadMessageId: string;
         timestamp: string;
     }) => void;
+
+    "task:created": (data: {
+        taskId: string;
+        channelId: string;
+        createdByUserId: string;
+        assignedToUserId: string | null;
+        title: string;
+        description: string | null;
+        dueDate: string | null;
+        priority: "low" | "medium" | "high";
+        status: "new" | "in_progress" | "completed";
+        createdAt: string;
+        updatedAt: string;
+    }) => void;
+
+    "task:updated": (data: {
+        taskId: string;
+        channelId: string;
+        assignedToUserId: string | null;
+        title: string;
+        description: string | null;
+        dueDate: string | null;
+        priority: "low" | "medium" | "high";
+        status: "new" | "in_progress" | "completed";
+        updatedAt: string;
+    }) => void;
+
+    "task:deleted": (data: {
+        taskId: string;
+        channelId: string;
+    }) => void;
+
+    "task:status": (data: {
+        taskId: string;
+        status: "new" | "in_progress" | "completed";
+    }) => void;
+
+    "task:assigned": (data: {
+        taskId: string;
+        channelId: string;
+        title: string;
+        dueDate: string | null;
+        priority: "low" | "medium" | "high";
+    }) => void;
 };
 
 // Events from client to server
@@ -99,6 +143,8 @@ export type ClientToServerEvents = {
 
     // Mark messages as read
     "message:read": (channelId: string, messageId: string) => void;
+
+    "task:status:change": (taskId: string, status: "new" | "in_progress" | "completed", callback: (success: boolean) => void) => void;
 };
 
 // Server to server events (if using multiple servers)

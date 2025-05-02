@@ -1,0 +1,32 @@
+.table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin-bottom: 0;
+}
+
+.table :global(th) {
+    background-color: light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-7));
+    font-weight: 600;
+    color: light-dark(var(--mantine-color-dark-9), var(--mantine-color-gray-5));
+    text-transform: none;
+    letter-spacing: 0;
+}
+
+.taskRow {
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.taskRow:hover {
+    background-color: light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-6));
+}
+
+.actionIcon {
+    opacity: 0.6;
+    transition: opacity 0.2s;
+}
+
+.taskRow:hover .actionIcon {
+    opacity: 1;
+}

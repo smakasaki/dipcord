@@ -10,7 +10,6 @@ import type {
 import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import type { RedisClientType } from "redis";
 
-import type { ActiveUsersService } from "#channels/app/active-users-service.js";
 import type { ChannelService } from "#channels/app/channel-service.js";
 import type { ChatService } from "#chat/app/chat-service.js";
 import type { Database } from "#commons/infra/plugins/database.js";
@@ -28,7 +27,6 @@ declare module "fastify" {
         userService: UserService;
         channelService: ChannelService;
         sessionService: SessionService;
-        activeUsersService: ActiveUsersService;
         googleOAuth2: OAuth2Namespace;
         microsoftOAuth2: OAuth2Namespace;
         chatService: ChatService;

@@ -120,14 +120,28 @@ export const useMessagesStore = create<MessagesState>(set => ({
                 a.timestamp.getTime() - b.timestamp.getTime());
 
             set((state) => {
-                // Определяем, загружаем ли мы более старые сообщения (пагинация вверх)
+                // Special case: If we're fetching a single newest message, just append it
+                // This is typically for real-time updates and should preserve history
+                const isNewestSingleMessage = params?.sort === "newest" && params?.limit === 1;
+
+                // Determine if we're loading older messages (pagination up)
                 const isLoadingOlder = params?.cursor !== undefined;
 
-                // Если загружаем более старые сообщения при скролле вверх,
-                // добавляем их в начало списка
-                const messages = isLoadingOlder
-                    ? [...mappedMessages, ...state.messages]
-                    : mappedMessages;
+                // Decide how to combine messages based on the request type
+                let messages;
+
+                if (isNewestSingleMessage) {
+                    // For single newest message, append to existing without replacing history
+                    messages = [...state.messages, ...mappedMessages];
+                }
+                else if (isLoadingOlder) {
+                    // For older messages, add them to the beginning
+                    messages = [...mappedMessages, ...state.messages];
+                }
+                else {
+                    // For initial or regular load, replace entirely
+                    messages = mappedMessages;
+                }
 
                 // Убираем дубликаты по ID
                 const uniqueMessages = Array.from(
@@ -245,7 +259,7 @@ export const useMessagesStore = create<MessagesState>(set => ({
 
             // Add the new message to the store
             set(state => ({
-                messages: [message, ...state.messages],
+                messages: [...state.messages, message],
                 totalCount: state.totalCount + 1,
                 isLoading: false,
             }));
@@ -261,10 +275,10 @@ export const useMessagesStore = create<MessagesState>(set => ({
     updateMessage: async (messageId, content) => {
         try {
             const response = await messagesService.updateMessage(messageId, content);
-            
+
             // Update the message in the store
-            set(state => {
-                const updatedMessages = state.messages.map(msg => {
+            set((state) => {
+                const updatedMessages = state.messages.map((msg) => {
                     if (msg.id === messageId) {
                         return {
                             ...msg,
@@ -274,37 +288,39 @@ export const useMessagesStore = create<MessagesState>(set => ({
                     }
                     return msg;
                 });
-                
+
                 return {
                     ...state,
                     messages: updatedMessages,
                 };
             });
-            
+
             // Return the updated message
             return mapMessageResponse(response);
-        } catch (error) {
+        }
+        catch (error) {
             set({ error: error instanceof Error ? error.message : "Failed to update message." });
             throw error;
         }
     },
-    
+
     deleteMessage: async (messageId) => {
         try {
             await messagesService.deleteMessage(messageId);
-            
+
             // Remove the message from the store
-            set(state => {
+            set((state) => {
                 const filteredMessages = state.messages.filter(msg => msg.id !== messageId);
-                
+
                 return {
                     ...state,
                     messages: filteredMessages,
                 };
             });
-            
+
             return true;
-        } catch (error) {
+        }
+        catch (error) {
             set({ error: error instanceof Error ? error.message : "Failed to delete message." });
             throw error;
         }

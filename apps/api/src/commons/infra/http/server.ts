@@ -86,6 +86,9 @@ export default async function buildServer(app: FastifyInstance) {
     // Register chat module
     app.register(import("#chat/index.js"));
 
+    // Register task module
+    app.register(import("#tasks/index.js"));
+
     // Set global error handler
     app.setErrorHandler(errorHandler);
 
