@@ -2,6 +2,7 @@ import type { UserState } from "#/entities/user";
 import type { LoginRequest, RegisterUserData } from "#/shared/api/auth";
 
 import { authService } from "#/shared/api/auth";
+import { socketService } from "#/shared/api/socket";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
@@ -11,6 +12,7 @@ type AuthStore = {
     logout: () => Promise<void>;
     checkAuth: () => Promise<void>;
     setError: (error: string | null) => void;
+    clearUser: () => void;
 } & UserState;
 
 export const useAuthStore = create<AuthStore>()(
@@ -22,6 +24,16 @@ export const useAuthStore = create<AuthStore>()(
             error: null,
 
             setError: (error: string | null) => set({ error }),
+
+            clearUser: () => {
+                set({
+                    user: null,
+                    isAuthenticated: false,
+                    isLoading: false,
+                    error: null,
+                });
+                socketService.disconnect();
+            },
 
             login: async (credentials: LoginRequest) => {
                 set({ isLoading: true, error: null });
@@ -78,12 +90,12 @@ export const useAuthStore = create<AuthStore>()(
 
                 try {
                     await authService.logout();
-
                     set({
                         user: null,
                         isAuthenticated: false,
                         isLoading: false,
                     });
+                    socketService.disconnect();
                 }
                 catch (error) {
                     set({

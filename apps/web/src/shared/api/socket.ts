@@ -152,6 +152,7 @@ class SocketService {
     private channelIds: Set<string> = new Set();
     private connectionAttempts = 0;
     private maxReconnectAttempts = 5;
+    private onSessionError: (() => void) | null = null;
 
     // Initialize the socket connection
     connect(token?: string): SocketClientType {
@@ -164,7 +165,7 @@ class SocketService {
         this.socket = io({
             autoConnect: true,
             withCredentials: true,
-            path: `${API_PATH}/socket.io`, // Correctly specify the Socket.IO path with the proxy prefix
+            path: `${API_PATH}/socket.io`,
             reconnectionAttempts: this.maxReconnectAttempts,
             reconnectionDelay: 1000,
             reconnectionDelayMax: 5000,
@@ -174,6 +175,11 @@ class SocketService {
 
         this.setupConnectionListeners();
         return this.socket;
+    }
+
+    // Set callback for session errors
+    setSessionErrorCallback(callback: () => void): void {
+        this.onSessionError = callback;
     }
 
     // Join a channel
@@ -284,12 +290,19 @@ class SocketService {
             });
         });
 
-        this.socket.on("disconnect", () => {
-            // Connection lost
+        this.socket.on("disconnect", (reason) => {
+            if (reason === "io server disconnect" || reason === "io client disconnect") {
+                // Server initiated disconnect, likely due to session issues
+                this.onSessionError?.();
+            }
         });
 
-        this.socket.on("connect_error", () => {
+        this.socket.on("connect_error", (error) => {
             this.connectionAttempts++;
+
+            if (error.message.includes("unauthorized") || error.message.includes("invalid session")) {
+                this.onSessionError?.();
+            }
 
             if (this.connectionAttempts >= this.maxReconnectAttempts) {
                 this.socket?.disconnect();
