@@ -17,14 +17,12 @@ export const baseConfig = defineConfig({
         globals: true,
         environment: "node",
         passWithNoTests: true,
-        pool: "forks",
+        pool: "threads",
         poolOptions: {
             threads: {
-                singleThread: true,
-            },
-            forks: {
-                isolate: false,
-                singleFork: true,
+                singleThread: false,
+                minThreads: 1,
+                maxThreads: 4,
             },
         },
         coverage: {
