@@ -8,6 +8,7 @@ import cors from "@fastify/cors";
 import sensible from "@fastify/sensible";
 import swagger from "@fastify/swagger";
 import swaggerUi from "@fastify/swagger-ui";
+import ScalarApiReference from "@scalar/fastify-api-reference";
 import {
     createJsonSchemaTransformObject,
     jsonSchemaTransform,
@@ -109,6 +110,30 @@ export default async function buildServer(app: FastifyInstance) {
             status: "healthy",
             timestamp: new Date().toISOString(),
         };
+    });
+
+    app.get("/openapi.json", async (_request, _reply) => {
+        return app.swagger();
+    });
+
+    await app.register(ScalarApiReference, {
+        routePrefix: "/reference",
+        // Additional hooks for the API reference routes. You can provide the onRequest and preHandler hooks
+        hooks: {
+            onRequest(request, reply, done) {
+                done();
+            },
+            preHandler(request, reply, done) {
+                done();
+            },
+        },
+        configuration: {
+            theme: "elysiajs",
+            defaultHttpClient: {
+                targetKey: "js",
+                clientKey: "fetch",
+            },
+        },
     });
 
     // Print routes on startup

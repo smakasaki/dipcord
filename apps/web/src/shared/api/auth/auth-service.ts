@@ -2,7 +2,7 @@ import type { User } from "#/entities/user";
 
 import type { LoginRequest, RegisterUserData, UserData } from "./types";
 
-import { GET, POST } from "../client";
+import { httpClient } from "../http-client";
 
 const mapUserResponse = (userData: UserData | null): User | null => {
     if (!userData)
@@ -17,49 +17,27 @@ const mapUserResponse = (userData: UserData | null): User | null => {
 
 export const authService = {
     login: async (credentials: LoginRequest) => {
-        const { data, error } = await POST("/v1/auth/login", {
-            body: credentials,
-        });
-
-        if (error) {
-            throw error;
-        }
-
+        const data = await httpClient.post<UserData>("/v1/auth/login", credentials);
         return mapUserResponse(data);
     },
 
     register: async (userData: RegisterUserData) => {
-        const { data, error } = await POST("/v1/auth/register", {
-            body: userData,
-        });
-
-        if (error) {
-            throw error;
-        }
-
+        const data = await httpClient.post<UserData>("/v1/auth/register", userData);
         return mapUserResponse(data);
     },
 
     logout: async () => {
-        const { error } = await POST("/v1/auth/logout", {});
-
-        if (error) {
-            throw error;
-        }
-
+        await httpClient.post("/v1/auth/logout");
         return true;
     },
 
     getProfile: async (): Promise<User | null> => {
-        const { data, error } = await GET("/v1/auth/profile", {});
-
-        if (error) {
-            if (error.statusCode === 401) {
-                return null;
-            }
-            throw error;
+        try {
+            const data = await httpClient.get<UserData>("/v1/auth/profile");
+            return mapUserResponse(data);
         }
-
-        return mapUserResponse(data);
+        catch {
+            return null;
+        }
     },
 };
